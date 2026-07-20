@@ -630,8 +630,8 @@ function initFirebase() {
 function signIn() {
   if (!fb.auth) return;
   const provider = new firebase.auth.GoogleAuthProvider();
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  if (isMobile) { fb.auth.signInWithRedirect(provider); return; }
+  // Pop-up funciona melhor que redirecionamento no celular (Safari/iOS bloqueia
+  // o fluxo de redirect). Se o pop-up for bloqueado, cai para o redirect.
   fb.auth.signInWithPopup(provider).catch(err => {
     if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
     if (err.code === 'auth/popup-blocked' || err.code === 'auth/operation-not-supported-in-this-environment') {
