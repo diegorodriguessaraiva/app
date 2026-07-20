@@ -172,6 +172,25 @@
   }
   .fab:hover { opacity: 0.92; }
 
+  .sync-bar {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 10px 14px; margin-bottom: 16px; font-size: 0.85rem; color: var(--muted);
+    box-shadow: var(--shadow);
+  }
+  .sync-bar a { color: var(--primary); font-weight: 600; text-decoration: none; }
+  .sync-bar a:hover { text-decoration: underline; }
+  .sync-bar .spacer { flex: 1; }
+  .sync-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .sync-dot.on  { background: var(--ok); }
+  .sync-dot.off { background: var(--muted); opacity: .5; }
+  .sync-dot.err { background: var(--danger); }
+  .sync-dot.wait { background: var(--warn); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+  .btn-sm { padding: 6px 12px; font-size: 0.82rem; }
+  .g-btn { display: inline-flex; align-items: center; gap: 7px; }
+  .g-btn svg { width: 16px; height: 16px; }
+
   @media (max-width: 560px) {
     .row2 { grid-template-columns: 1fr; }
     header h1 { font-size: 1.25rem; }
@@ -188,6 +207,8 @@
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
     </div>
   </header>
+
+  <div class="sync-bar" id="syncBar"></div>
 
   <div class="stats" id="stats"></div>
 
@@ -269,7 +290,28 @@
   </div>
 </div>
 
+<!-- Firebase (sincronização + login com Google). Carregado do CDN oficial do Google. -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
 <script>
+/* =====================================================================
+   CONFIGURAÇÃO DA SINCRONIZAÇÃO (Firebase)
+   ---------------------------------------------------------------------
+   Para ativar o login com Google e sincronizar entre celular e PC,
+   cole aqui os dados do SEU projeto Firebase (veja o passo a passo no
+   README). Enquanto estiver como está abaixo, o app funciona normal,
+   só que guardando os dados apenas neste aparelho.
+   ===================================================================== */
+const FIREBASE_CONFIG = {
+  apiKey: "COLE_SEU_apiKey_AQUI",
+  authDomain: "COLE_SEU_authDomain_AQUI",
+  projectId: "COLE_SEU_projectId_AQUI",
+  appId: "COLE_SEU_appId_AQUI"
+};
+/* ===================================================================== */
+
 const STORAGE_KEY = 'agenda-escolar-v1';
 const TYPE_LABELS = {
   dever: '📝 Dever de casa',
@@ -287,8 +329,12 @@ function load() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
   catch { return []; }
 }
-function persist() {
+function persistLocal() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+}
+function persist() {
+  persistLocal();
+  pushRemote();
 }
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -544,6 +590,157 @@ function importData(ev) {
   reader.readAsText(file);
 }
 
+/* ---- sincronização na nuvem (Firebase + login com Google) ---- */
+const fb = { app: null, auth: null, db: null, user: null };
+let syncState = 'off';   // off | connecting | on | error | localonly
+let syncMsg = '';
+let unsub = null;
+let pushTimer = null;
+
+function firebaseConfigured() {
+  return FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey &&
+         !FIREBASE_CONFIG.apiKey.startsWith('COLE_');
+}
+
+function setSyncState(s, msg) { syncState = s; syncMsg = msg || ''; renderSyncBar(); }
+
+function initFirebase() {
+  renderSyncBar();
+  if (!firebaseConfigured()) return;
+  if (!window.firebase || !firebase.initializeApp) {
+    setSyncState('error', 'Não foi possível carregar a sincronização (sem internet?).');
+    return;
+  }
+  try {
+    fb.app = firebase.initializeApp(FIREBASE_CONFIG);
+    fb.auth = firebase.auth();
+    fb.db = firebase.firestore();
+  } catch (e) {
+    setSyncState('error', 'Configuração do Firebase inválida.');
+    return;
+  }
+  fb.auth.getRedirectResult().catch(() => {});
+  fb.auth.onAuthStateChanged(user => {
+    fb.user = user;
+    if (user) startSync(); else stopSync();
+    renderSyncBar();
+  });
+}
+
+function signIn() {
+  if (!fb.auth) return;
+  const provider = new firebase.auth.GoogleAuthProvider();
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if (isMobile) { fb.auth.signInWithRedirect(provider); return; }
+  fb.auth.signInWithPopup(provider).catch(err => {
+    if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
+    if (err.code === 'auth/popup-blocked' || err.code === 'auth/operation-not-supported-in-this-environment') {
+      fb.auth.signInWithRedirect(provider);
+    } else {
+      setSyncState('error', err.message);
+    }
+  });
+}
+
+function signOutUser() { if (fb.auth) fb.auth.signOut(); }
+
+function mergeById(primary, extra) {
+  const ids = new Set(primary.map(i => i.id));
+  const result = primary.slice();
+  for (const it of extra) if (!ids.has(it.id)) result.push(it);
+  return result;
+}
+
+async function startSync() {
+  if (!fb.db || !fb.user) return;
+  setSyncState('connecting');
+  const ref = fb.db.collection('agendas').doc(fb.user.uid);
+  try {
+    const snap = await ref.get();
+    const remote = snap.exists ? (snap.data().items || []) : [];
+    const merged = mergeById(remote, items);   // não perde itens criados offline
+    if (JSON.stringify(merged) !== JSON.stringify(remote)) {
+      await ref.set({ items: merged, updatedAt: Date.now() });
+    }
+    items = merged; persistLocal(); render();
+  } catch (e) {
+    setSyncState('error', e.message);
+    return;
+  }
+  if (unsub) unsub();
+  unsub = ref.onSnapshot(snap => {
+    if (!snap.exists) return;
+    items = snap.data().items || [];
+    persistLocal(); render();
+    setSyncState('on');
+  }, err => setSyncState('error', err.message));
+  setSyncState('on');
+}
+
+function stopSync() {
+  if (unsub) { unsub(); unsub = null; }
+  setSyncState('off');
+}
+
+function pushRemote() {
+  if (!fb.db || !fb.user) return;
+  clearTimeout(pushTimer);
+  setSyncState('connecting');
+  pushTimer = setTimeout(() => {
+    fb.db.collection('agendas').doc(fb.user.uid)
+      .set({ items, updatedAt: Date.now() })
+      .then(() => setSyncState('on'))
+      .catch(err => setSyncState('error', err.message));
+  }, 400);
+}
+
+const GOOGLE_G = '<svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.3 0 24 0 14.6 0 6.4 5.4 2.4 13.3l7.9 6.1C12.2 13.6 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16.5z"/><path fill="#FBBC05" d="M10.3 28.6c-.5-1.4-.7-2.9-.7-4.6s.3-3.2.7-4.6l-7.9-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.4 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.3-4.5 2.1-8.8 2.1-6.4 0-11.8-4.1-13.7-9.9l-7.9 6.1C6.4 42.6 14.6 48 24 48z"/></svg>';
+
+function renderSyncBar() {
+  const el = document.getElementById('syncBar');
+  if (!el) return;
+
+  if (!firebaseConfigured()) {
+    el.innerHTML = `<span class="sync-dot off"></span>
+      <span>Sincronização não configurada — os dados ficam só neste aparelho.</span>
+      <span class="spacer"></span>
+      <a href="#" onclick="showSyncHelp();return false;">Como ativar</a>`;
+    return;
+  }
+  if (syncState === 'error') {
+    el.innerHTML = `<span class="sync-dot err"></span>
+      <span>Erro de sincronização${syncMsg ? ': ' + esc(syncMsg) : ''}</span>
+      <span class="spacer"></span>
+      ${fb.user ? `<button class="btn btn-ghost btn-sm" onclick="signOutUser()">Sair</button>`
+                : `<button class="btn btn-primary btn-sm g-btn" onclick="signIn()">${GOOGLE_G} Entrar com Google</button>`}`;
+    return;
+  }
+  if (fb.user) {
+    const label = fb.user.displayName || fb.user.email || 'conta Google';
+    const txt = syncState === 'connecting' ? 'Sincronizando…' : 'Sincronizado';
+    const dot = syncState === 'connecting' ? 'wait' : 'on';
+    el.innerHTML = `<span class="sync-dot ${dot}"></span>
+      <span>${txt} · ${esc(label)}</span>
+      <span class="spacer"></span>
+      <button class="btn btn-ghost btn-sm" onclick="signOutUser()">Sair</button>`;
+  } else {
+    el.innerHTML = `<span class="sync-dot off"></span>
+      <span>Entre para sincronizar entre seus aparelhos</span>
+      <span class="spacer"></span>
+      <button class="btn btn-primary btn-sm g-btn" onclick="signIn()">${GOOGLE_G} Entrar com Google</button>`;
+  }
+}
+
+function showSyncHelp() {
+  alert('Para sincronizar entre o celular e o computador:\n\n' +
+    '1. Crie um projeto grátis em console.firebase.google.com\n' +
+    '2. Ative Authentication → Sign-in method → Google\n' +
+    '3. Crie um banco Firestore Database\n' +
+    '4. Copie os dados do app web (apiKey, authDomain, projectId, appId)\n' +
+    '5. Cole no bloco FIREBASE_CONFIG dentro do arquivo index.html\n\n' +
+    'O passo a passo completo está no README do projeto.');
+}
+
 /* ---- eventos ---- */
 document.getElementById('tabs').addEventListener('click', ev => {
   const tab = ev.target.closest('.tab');
@@ -564,6 +761,7 @@ document.addEventListener('keydown', ev => {
 });
 
 render();
+initFirebase();
 </script>
 </body>
 </html>
