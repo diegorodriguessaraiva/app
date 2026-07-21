@@ -8,6 +8,8 @@
 <meta name="apple-mobile-web-app-title" content="Agenda">
 <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Agenda Escolar</title>
 <style>
   :root {
@@ -303,6 +305,30 @@
   .viewer-body iframe { width: 100%; height: 100%; border: none; background: #fff; border-radius: 6px; }
   .viewer-body .fallback { color: #fff; text-align: center; padding: 30px; }
 
+  /* ---- Deslizar para concluir/excluir ---- */
+  .swipe { position: relative; overflow: hidden; }
+  .swipe-act { position: absolute; top: 0; bottom: 0; width: 50%; display: flex; align-items: center; color: #fff; font-size: 1.15rem; font-weight: 700; gap: 7px; }
+  .swipe-act.done { left: 0; background: var(--green); justify-content: flex-start; padding-left: 20px; }
+  .swipe-act.del  { right: 0; background: var(--red); justify-content: flex-end; padding-right: 20px; }
+  .swipe .row { position: relative; z-index: 1; background: var(--group); transition: transform .25s cubic-bezier(.32,.72,0,1); touch-action: pan-y; }
+  .swipe .row.dragging { transition: none; }
+
+  /* ---- Grade de horários ---- */
+  .grade-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 2px 2px 14px; flex-wrap: wrap; }
+  .grade-head .term-name { font-size: 1.15rem; font-weight: 800; }
+  .grade-head .term-dates { font-size: .78rem; color: var(--label2); font-weight: 600; }
+  .day-block { margin-bottom: 18px; }
+  .day-block .dh { font-size: .82rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--label2); margin: 0 4px 8px; }
+  .day-block .dh.today { color: var(--blue); }
+  .cls-card { display: flex; gap: 12px; background: var(--group); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,.04); align-items: center; }
+  .cls-stripe { width: 5px; align-self: stretch; border-radius: 3px; flex-shrink: 0; }
+  .cls-time { font-variant-numeric: tabular-nums; font-weight: 700; font-size: .9rem; width: 62px; flex-shrink: 0; line-height: 1.35; }
+  .cls-time .to { color: var(--label2); font-weight: 500; font-size: .8rem; }
+  .cls-main { flex: 1; min-width: 0; }
+  .cls-code { font-weight: 700; font-size: 1rem; }
+  .cls-meta { font-size: .82rem; color: var(--label2); margin-top: 2px; }
+  .grade-empty { color: var(--label2); font-size: .85rem; padding: 4px 6px 14px; }
+
   @media (min-width: 641px) { .sheet, .tabbar { border-radius: 14px 14px 0 0; } }
 </style>
 </head>
@@ -354,9 +380,21 @@
     <div class="cal-daylist" id="calDayList"></div>
   </main>
 
+  <main id="viewGrade" hidden>
+    <div class="grade-head">
+      <div>
+        <div class="term-name" id="termName"></div>
+        <div class="term-dates" id="termDates"></div>
+      </div>
+      <div class="seg-ctl" id="termSel"></div>
+    </div>
+    <div id="gradeGrid"></div>
+  </main>
+
   <nav class="tabbar">
     <button class="tab-btn active" data-tab="list"><span class="ic">☰</span>Lista</button>
     <button class="tab-btn" data-tab="cal"><span class="ic">📅</span>Calendário</button>
+    <button class="tab-btn" data-tab="grade"><span class="ic">📚</span>Horários</button>
   </nav>
 </div>
 
@@ -393,6 +431,29 @@
         <input type="time" class="inp" id="fTime">
       </div>
     </div>
+    <div class="two">
+      <div class="field">
+        <label>Repetir</label>
+        <select class="inp" id="fRepeat">
+          <option value="none">Nunca</option>
+          <option value="daily">Todo dia</option>
+          <option value="weekly">Toda semana</option>
+          <option value="biweekly">A cada 2 semanas</option>
+          <option value="monthly">Todo mês</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Lembrete</label>
+        <select class="inp" id="fRemind">
+          <option value="none">Sem lembrete</option>
+          <option value="0">No horário</option>
+          <option value="10">10 min antes</option>
+          <option value="30">30 min antes</option>
+          <option value="60">1 hora antes</option>
+          <option value="1440">1 dia antes</option>
+        </select>
+      </div>
+    </div>
     <div class="field">
       <label>Anotações</label>
       <textarea class="inp" id="fNotes" placeholder="Detalhes, páginas, conteúdo..."></textarea>
@@ -420,6 +481,13 @@
     <div class="field">
       <label>Sincronização</label>
       <div class="set-group"><div class="set-row" style="display:block" id="setSync"></div></div>
+    </div>
+    <div class="field">
+      <label>Notificações</label>
+      <div class="set-group">
+        <button class="set-row" id="btnNotif"><span class="ic">🔔</span> Lembretes<span class="val" id="notifState">—</span></button>
+      </div>
+      <p class="att-hint" id="notifHint">Avisa antes dos prazos. Escolha o lembrete em cada item. Funciona melhor com o app instalado na tela de início.</p>
     </div>
     <div class="field">
       <label>Aparência</label>
@@ -483,6 +551,46 @@ const TYPES = [
   { key: 'outro',    label: 'Outro',    icon: '📌', color: 'var(--gray)' }
 ];
 const TYPE_MAP = Object.fromEntries(TYPES.map(t => [t.key, t]));
+
+/* ---- Grade de horários (dia: 1=segunda … 5=sexta) ---- */
+const TERMS = [
+  { key: 'fall', name: 'Outono 2026', start: '2026-09-08', end: '2026-12-23', classes: [
+    { day: 1, s: '09:00', e: '10:00', code: 'MAT148', kind: 'LEC', room: 'MP 202' },
+    { day: 1, s: '10:00', e: '11:00', code: 'MAT223', kind: 'TUT', room: 'BA 2195' },
+    { day: 1, s: '15:00', e: '16:00', code: 'CSC108', kind: 'LEC', room: 'MP 202' },
+    { day: 1, s: '18:00', e: '20:00', code: 'ECO101', kind: 'LEC', room: 'MY 150' },
+    { day: 2, s: '09:00', e: '10:00', code: 'MAT148', kind: 'LEC', room: 'MP 203' },
+    { day: 2, s: '11:00', e: '12:00', code: 'PSY100', kind: 'LEC', room: 'CH' },
+    { day: 2, s: '13:00', e: '14:00', code: 'ECO101', kind: 'TUT', room: 'ES B142' },
+    { day: 2, s: '15:00', e: '17:00', code: 'MAT223', kind: 'LEC', room: 'MB 128' },
+    { day: 3, s: '13:00', e: '14:00', code: 'MAT148', kind: 'TUT', room: 'SS 1074' },
+    { day: 3, s: '15:00', e: '17:00', code: 'CSC108', kind: 'LEC', room: 'MP 203' },
+    { day: 4, s: '09:00', e: '10:00', code: 'MAT148', kind: 'LEC', room: 'MP 202' },
+    { day: 4, s: '11:00', e: '13:00', code: 'PSY100', kind: 'LEC', room: 'CH' },
+    { day: 4, s: '15:00', e: '16:00', code: 'MAT223', kind: 'LEC', room: 'HS 610' }
+  ] },
+  { key: 'winter', name: 'Inverno 2027', start: '2027-01-06', end: '2027-04-30', classes: [
+    { day: 1, s: '10:00', e: '11:00', code: 'MAT149', kind: 'LEC', room: 'MP 102' },
+    { day: 2, s: '10:00', e: '11:00', code: 'MAT149', kind: 'LEC', room: 'MP 202' },
+    { day: 2, s: '11:00', e: '13:00', code: 'ECO102', kind: 'LEC', room: 'OI G162' },
+    { day: 2, s: '15:00', e: '17:00', code: 'CSC148', kind: 'LEC', room: 'MP 203' },
+    { day: 2, s: '17:00', e: '19:00', code: 'MAT224', kind: 'LEC', room: 'MP 103' },
+    { day: 3, s: '11:00', e: '12:00', code: 'MAT149', kind: 'TUT', room: 'UC 52' },
+    { day: 3, s: '12:00', e: '13:00', code: 'ECO102', kind: 'TUT', room: 'HI CART' },
+    { day: 4, s: '10:00', e: '11:00', code: 'MAT149', kind: 'LEC', room: 'MP 202' },
+    { day: 4, s: '13:00', e: '15:00', code: 'CSC148', kind: 'TUT', room: 'BA 2220' },
+    { day: 4, s: '15:00', e: '16:00', code: 'CSC148', kind: 'LEC', room: 'MP 103' },
+    { day: 4, s: '17:00', e: '18:00', code: 'MAT224', kind: 'LEC', room: 'MP 203' },
+    { day: 4, s: '18:00', e: '21:00', code: 'ENG100', kind: 'LEC', room: 'Online' },
+    { day: 5, s: '11:00', e: '12:00', code: 'MAT224', kind: 'TUT', room: 'EM 108' }
+  ] }
+];
+const CLASS_COLORS = ['var(--blue)', 'var(--red)', 'var(--orange)', 'var(--green)', 'var(--purple)', '#00b8c4', '#ff6482', '#a2845e'];
+function classColor(code) {
+  const codes = [...new Set(TERMS.flatMap(t => t.classes.map(c => c.code)))].sort();
+  return CLASS_COLORS[codes.indexOf(code) % CLASS_COLORS.length];
+}
+let currentTerm = TERMS[0].key;
 
 let items = load();
 let currentView = 'proximos';
@@ -567,7 +675,9 @@ function render() {
   renderSegBadges();
   renderSyncBar();
   renderSubjectList();
-  if (currentTab === 'list') renderList(); else renderCalendar();
+  if (currentTab === 'list') renderList();
+  else if (currentTab === 'cal') renderCalendar();
+  else renderGrade();
 }
 
 function renderNavSub() {
@@ -610,18 +720,24 @@ function attMini(it) {
 
 function rowHtml(it) {
   const t = TYPE_MAP[it.type] || TYPE_MAP.outro;
-  return `<div class="row ${it.done ? 'done' : ''}" data-id="${it.id}">
-    <button class="circle" style="--c:${t.color}" data-toggle="${it.id}" aria-label="Concluir"></button>
-    <div class="row-main" data-open="${it.id}">
-      <div class="row-title">${esc(it.title)}</div>
-      <div class="row-sub">
-        <span class="chip type" style="background:${t.color}">${t.icon} ${t.label}</span>
-        ${it.subject ? `<span class="chip">${esc(it.subject)}</span>` : ''}
-        ${it.time ? `<span class="chip">🕐 ${it.time}</span>` : ''}
-        ${dueChip(it)}${attMini(it)}
+  const rep = (it.repeat && it.repeat !== 'none') ? '<span class="chip">🔁</span>' : '';
+  const rem = (it.remind && it.remind !== 'none') ? '<span class="chip">🔔</span>' : '';
+  return `<div class="swipe">
+    <div class="swipe-act done">✓ Concluir</div>
+    <div class="swipe-act del">Excluir 🗑️</div>
+    <div class="row ${it.done ? 'done' : ''}" data-id="${it.id}">
+      <button class="circle" style="--c:${t.color}" data-toggle="${it.id}" aria-label="Concluir"></button>
+      <div class="row-main" data-open="${it.id}">
+        <div class="row-title">${esc(it.title)}</div>
+        <div class="row-sub">
+          <span class="chip type" style="background:${t.color}">${t.icon} ${t.label}</span>
+          ${it.subject ? `<span class="chip">${esc(it.subject)}</span>` : ''}
+          ${it.time ? `<span class="chip">🕐 ${it.time}</span>` : ''}
+          ${dueChip(it)}${attMini(it)}${rep}${rem}
+        </div>
       </div>
+      <span class="chev" data-open="${it.id}">›</span>
     </div>
-    <span class="chev" data-open="${it.id}">›</span>
   </div>`;
 }
 
@@ -695,8 +811,169 @@ function renderCalendar() {
   }
 }
 
+/* ---------- grade de horários ---------- */
+const WEEKDAYS = ['', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
+function fmtHour(hm) {
+  let [h, m] = hm.split(':').map(Number);
+  const suf = h < 12 ? 'am' : 'pm'; let hh = h % 12; if (hh === 0) hh = 12;
+  return hh + (m ? ':' + String(m).padStart(2, '0') : '') + suf;
+}
+function termForToday() {
+  const t = todayStr();
+  const inRange = TERMS.find(term => t >= term.start && t <= term.end);
+  return inRange ? inRange.key : TERMS[0].key;
+}
+function renderGrade() {
+  const term = TERMS.find(t => t.key === currentTerm) || TERMS[0];
+  document.getElementById('termName').textContent = term.name;
+  const fmt = s => { const [y, m, d] = s.split('-'); return d + '/' + m; };
+  document.getElementById('termDates').textContent = fmt(term.start) + ' – ' + fmt(term.end);
+  document.getElementById('termSel').innerHTML = TERMS.map(t =>
+    `<button data-term="${t.key}" class="${t.key === term.key ? 'on' : ''}">${t.key === 'fall' ? 'Outono' : 'Inverno'}</button>`
+  ).join('');
+
+  const todayDow = (() => { const [y, m, d] = todayStr().split('-').map(Number); return new Date(y, m - 1, d).getDay(); })();
+  let html = '';
+  for (let day = 1; day <= 5; day++) {
+    const cls = term.classes.filter(c => c.day === day).sort((a, b) => a.s.localeCompare(b.s));
+    if (!cls.length) continue;
+    const isToday = day === todayDow;
+    html += `<div class="day-block"><div class="dh ${isToday ? 'today' : ''}">${WEEKDAYS[day]}${isToday ? ' · hoje' : ''}</div>`;
+    html += cls.map(c => `<div class="cls-card">
+      <div class="cls-stripe" style="background:${classColor(c.code)}"></div>
+      <div class="cls-time">${fmtHour(c.s)}<div class="to">${fmtHour(c.e)}</div></div>
+      <div class="cls-main"><div class="cls-code">${c.code}</div><div class="cls-meta">${c.kind} · ${esc(c.room)}</div></div>
+    </div>`).join('');
+    html += '</div>';
+  }
+  document.getElementById('gradeGrid').innerHTML = html || '<div class="grade-empty">Sem aulas cadastradas neste período.</div>';
+}
+
+/* ---------- notificações ---------- */
+let reminderTimers = [];
+function notifSupported() { return 'Notification' in window; }
+function updateNotifUI() {
+  const st = document.getElementById('notifState');
+  if (!st) return;
+  if (!notifSupported()) { st.textContent = 'Indisponível'; return; }
+  const p = Notification.permission;
+  st.textContent = p === 'granted' ? 'Ativados ✓' : (p === 'denied' ? 'Bloqueados' : 'Ativar ›');
+}
+async function requestNotif() {
+  if (!notifSupported()) { toast('Este navegador não suporta notificações.'); return; }
+  if (Notification.permission === 'denied') { toast('Notificações bloqueadas nas configurações do navegador.'); return; }
+  const p = await Notification.requestPermission();
+  updateNotifUI();
+  if (p === 'granted') { toast('Lembretes ativados 🔔'); scheduleReminders(); }
+}
+function reminderTime(it) {
+  if (!it.remind || it.remind === 'none') return null;
+  const [y, m, d] = it.date.split('-').map(Number);
+  const [hh, mm] = (it.time || '08:00').split(':').map(Number);
+  return new Date(y, m - 1, d, hh, mm).getTime() - Number(it.remind) * 60000;
+}
+function fireNotification(it) {
+  const t = TYPE_MAP[it.type] || TYPE_MAP.outro;
+  const when = it.time ? ' às ' + it.time : '';
+  const body = (it.subject ? it.subject + ' · ' : '') + t.label + when;
+  const opts = { body, tag: 'agenda-' + it.id, icon: 'icon-192.png', badge: 'icon-192.png' };
+  try {
+    if (swReg && swReg.showNotification) swReg.showNotification('📚 ' + it.title, opts);
+    else new Notification('📚 ' + it.title, opts);
+  } catch { }
+}
+function scheduleReminders() {
+  reminderTimers.forEach(clearTimeout); reminderTimers = [];
+  if (!notifSupported() || Notification.permission !== 'granted') return;
+  const now = Date.now();
+  let changed = false;
+  for (const it of items) {
+    if (it.done || it.notified || !it.remind || it.remind === 'none') continue;
+    const when = reminderTime(it); if (when == null) continue;
+    if (when <= now) {
+      if (now - when < 12 * 3600000) { fireNotification(it); it.notified = true; changed = true; }  // atrasado até 12h → avisa agora
+    } else if (when - now < 24 * 3600000) {                                                          // dentro de 24h → agenda
+      const id = it.id;
+      reminderTimers.push(setTimeout(() => {
+        const cur = items.find(x => x.id === id);
+        if (cur && !cur.done && !cur.notified) { fireNotification(cur); cur.notified = true; persistLocal(); }
+      }, when - now));
+    }
+  }
+  if (changed) persistLocal();
+}
+
+/* ---------- deslizar para concluir/excluir ---------- */
+let suppressClickUntil = 0;
+function initSwipe() {
+  let row = null, sx = 0, sy = 0, dx = 0, horiz = null;
+  const TH = 80;
+  document.body.addEventListener('touchstart', e => {
+    const r = e.target.closest('.swipe .row'); if (!r) return;
+    row = r; sx = e.touches[0].clientX; sy = e.touches[0].clientY; dx = 0; horiz = null;
+  }, { passive: true });
+  document.body.addEventListener('touchmove', e => {
+    if (!row) return;
+    const mx = e.touches[0].clientX - sx, my = e.touches[0].clientY - sy;
+    if (horiz === null) {
+      if (Math.abs(mx) < 6 && Math.abs(my) < 6) return;
+      horiz = Math.abs(mx) > Math.abs(my);
+      if (horiz) row.classList.add('dragging');
+    }
+    if (!horiz) { row = null; return; }
+    e.preventDefault();
+    dx = Math.max(-140, Math.min(140, mx));
+    row.style.transform = `translateX(${dx}px)`;
+  }, { passive: false });
+  document.body.addEventListener('touchend', () => {
+    if (!row || !horiz) { if (row) row.classList.remove('dragging'); row = null; return; }
+    row.classList.remove('dragging');
+    const r = row, itemId = r.dataset.id;
+    if (dx >= TH) { r.style.transform = ''; suppressClickUntil = Date.now() + 400; toggleDone(itemId); }
+    else if (dx <= -TH) {
+      r.style.transform = ''; suppressClickUntil = Date.now() + 400;
+      const it = items.find(i => i.id === itemId);
+      if (it && confirm(`Excluir "${it.title}"?`)) { (it.attachments || []).forEach(a => idbDel(a.id)); items = items.filter(i => i.id !== itemId); persist(); render(); }
+    } else { r.style.transform = ''; }
+    row = null;
+  });
+}
+
 /* ---------- toggle / abrir ---------- */
-function toggleDone(id) { const it = items.find(i => i.id === id); if (it) { it.done = !it.done; haptic(); persist(); render(); } }
+function addMonthsSafe(y, m, d, add) {
+  const dt = new Date(y, m - 1 + add, 1);
+  const last = new Date(dt.getFullYear(), dt.getMonth() + 1, 0).getDate();
+  return new Date(dt.getFullYear(), dt.getMonth(), Math.min(d, last));
+}
+function nextDate(dateStr, repeat) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  let dt;
+  if (repeat === 'daily') dt = new Date(y, m - 1, d + 1);
+  else if (repeat === 'weekly') dt = new Date(y, m - 1, d + 7);
+  else if (repeat === 'biweekly') dt = new Date(y, m - 1, d + 14);
+  else if (repeat === 'monthly') dt = addMonthsSafe(y, m, d, 1);
+  else return null;
+  return dateStrOf(dt);
+}
+
+function toggleDone(id) {
+  const it = items.find(i => i.id === id);
+  if (!it) return;
+  it.done = !it.done;
+  haptic();
+  // Item recorrente: ao concluir, cria a próxima ocorrência
+  if (it.done && it.repeat && it.repeat !== 'none') {
+    const nd = nextDate(it.date, it.repeat);
+    if (nd) {
+      items.push({ id: uid(), done: false, createdAt: new Date().toISOString(),
+        title: it.title, type: it.type, subject: it.subject || '', date: nd,
+        time: it.time || '', notes: it.notes || '', attachments: [],
+        repeat: it.repeat, remind: it.remind || 'none', notified: false });
+      toast('🔁 Próxima: ' + formatDate(nd).replace(/,.*$/, ''));
+    }
+  }
+  persist(); render(); scheduleReminders();
+}
 
 /* ---------- sheet: item ---------- */
 function openItemSheet(id) {
@@ -710,6 +987,8 @@ function openItemSheet(id) {
   document.getElementById('fSubject').value = it ? (it.subject || '') : '';
   document.getElementById('fDate').value = it ? it.date : (currentTab === 'cal' ? calSelected : todayStr());
   document.getElementById('fTime').value = it ? (it.time || '') : '';
+  document.getElementById('fRepeat').value = it ? (it.repeat || 'none') : 'none';
+  document.getElementById('fRemind').value = it ? (it.remind || 'none') : 'none';
   document.getElementById('fNotes').value = it ? (it.notes || '') : '';
   selectedType = it ? it.type : 'dever';
   renderTypePick();
@@ -787,15 +1066,18 @@ function saveItem() {
     subject: document.getElementById('fSubject').value.trim(),
     date: document.getElementById('fDate').value,
     time: document.getElementById('fTime').value,
+    repeat: document.getElementById('fRepeat').value,
+    remind: document.getElementById('fRemind').value,
     notes: document.getElementById('fNotes').value.trim(),
     attachments: pendingAtts.map(a => ({ id: a.id, name: a.name, type: a.type, size: a.size }))
   };
   if (!data.title || !data.date) return;
   attToDelete.forEach(id => idbDel(id));
+  data.notified = false;   // permite avisar de novo após editar
   if (editingId) { const it = items.find(i => i.id === editingId); if (it) Object.assign(it, data); }
   else items.push({ id: uid(), done: false, createdAt: new Date().toISOString(), ...data });
   attAddedThisSession = new Set(); attToDelete = new Set();
-  persist(); closeSheet('itemSheet', 'itemBackdrop'); render();
+  persist(); closeSheet('itemSheet', 'itemBackdrop'); render(); scheduleReminders();
 }
 
 function cancelItem() {
@@ -875,9 +1157,10 @@ function importData(ev) {
         items = data.filter(it => it && it.title && it.date).map(it => ({
           id: it.id || uid(), title: String(it.title), type: TYPE_MAP[it.type] ? it.type : 'outro',
           subject: it.subject || '', date: it.date, time: it.time || '', notes: it.notes || '',
+          repeat: it.repeat || 'none', remind: it.remind || 'none', notified: !!it.notified,
           done: !!it.done, attachments: Array.isArray(it.attachments) ? it.attachments : [], createdAt: it.createdAt || new Date().toISOString()
         }));
-        persist(); render(); toast('Agenda importada.');
+        persist(); render(); scheduleReminders(); toast('Agenda importada.');
       }
     } catch { toast('Arquivo inválido.'); }
     ev.target.value = '';
@@ -962,6 +1245,7 @@ document.getElementById('searchClear').addEventListener('click', () => { const i
 
 // delegação para linhas (lista e calendário)
 document.body.addEventListener('click', e => {
+  if (Date.now() < suppressClickUntil) return;   // ignora clique logo após deslizar
   const tog = e.target.closest('[data-toggle]'); if (tog) { toggleDone(tog.dataset.toggle); return; }
   const op = e.target.closest('[data-open]'); if (op) { openItemSheet(op.dataset.open); return; }
 });
@@ -971,6 +1255,7 @@ function switchTab(tab) {
   currentTab = tab;
   document.getElementById('viewList').hidden = tab !== 'list';
   document.getElementById('viewCal').hidden = tab !== 'cal';
+  document.getElementById('viewGrade').hidden = tab !== 'grade';
   const listOnly = tab === 'list';
   document.querySelector('.searchbar').style.display = listOnly ? '' : 'none';
   document.getElementById('segs').style.display = listOnly ? '' : 'none';
@@ -1002,11 +1287,16 @@ document.getElementById('attGrid').addEventListener('click', e => {
 document.getElementById('fFiles').addEventListener('change', e => { handleFiles(e.target.files); e.target.value = ''; });
 enableDrag('itemGrabber', 'itemSheet', 'itemBackdrop', cancelItem);
 
+// grade de horários
+document.getElementById('termSel').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; currentTerm = b.dataset.term; renderGrade(); });
+
 // settings sheet
 document.getElementById('settingsBtn').addEventListener('click', () => {
   renderSyncBar();
+  updateNotifUI();
   showSheet('setSheet', 'setBackdrop');
 });
+document.getElementById('btnNotif').addEventListener('click', requestNotif);
 document.getElementById('setDone').addEventListener('click', () => closeSheet('setSheet', 'setBackdrop'));
 document.getElementById('setBackdrop').addEventListener('click', () => closeSheet('setSheet', 'setBackdrop'));
 document.getElementById('themeCtl').addEventListener('click', e => { const b = e.target.closest('button'); if (b) applyTheme(b.dataset.theme); });
@@ -1028,10 +1318,19 @@ document.getElementById('viewerDownload').addEventListener('click', () => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { cancelItem(); closeSheet('setSheet', 'setBackdrop'); closeViewer(); } });
 
 /* ---------- init ---------- */
+let swReg = null;
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').then(r => { swReg = r; }).catch(() => {});
+}
 let savedTheme = 'auto'; try { savedTheme = localStorage.getItem('agenda-theme') || 'auto'; } catch { }
 applyTheme(savedTheme);
+currentTerm = termForToday();
+initSwipe();
 render();
 initFirebase();
+updateNotifUI();
+scheduleReminders();
+document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleReminders(); });
 </script>
 </body>
 </html>

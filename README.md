@@ -13,6 +13,10 @@ Para acessar do celular, publique com o **GitHub Pages** (Settings → Pages →
 - 📱 **Interface no estilo iPhone (iOS)** — título grande, folhas deslizantes, abas na base e toques com resposta tátil
 - ➕ **Adicionar itens** com título, tipo, matéria, data, hora e anotações
 - 📎 **Anexos**: guarde **PDF, fotos e imagens** (JPEG/PNG/etc.) em cada item, com **visualizador embutido** (abre imagens e PDFs dentro do app, além de baixar ou abrir em nova aba)
+- 🔁 **Itens recorrentes**: diário, semanal, quinzenal ou mensal — ao concluir, a próxima ocorrência é criada sozinha
+- 🔔 **Lembretes/notificações**: escolha em cada item (no horário, 10/30 min, 1 h ou 1 dia antes)
+- 📚 **Grade de horários** das aulas (Outono e Inverno), dia a dia, com cor por matéria e destaque do dia atual
+- 👆 **Deslizar** um item: arraste para a **direita para concluir** ✓ ou para a **esquerda para excluir** 🗑️ (gesto estilo iOS)
 - 🗓️ **Visão de calendário** mensal com bolinhas nos dias que têm itens e a lista do dia selecionado
 - 🏷️ **Tipos**: dever de casa, prova, trabalho, data importante e outros
 - 🔎 **Visualizações**: Próximos, Hoje, Semana, Atrasados, Concluídos e Todos
@@ -25,6 +29,10 @@ Para acessar do celular, publique com o **GitHub Pages** (Settings → Pages →
 - 🎨 **Tema**: Automático, Claro ou Escuro (nos Ajustes ⚙️)
 
 > **Sobre os anexos:** os arquivos ficam guardados **no próprio aparelho** (armazenamento local do navegador, que aguenta arquivos grandes). Os itens e as datas sincronizam pela nuvem; os arquivos em si não são enviados para a nuvem, então cada aparelho tem os seus.
+
+> **Sobre as notificações:** ative em **Ajustes ⚙️ → Lembretes** e permita as notificações no navegador. Elas disparam de forma confiável enquanto o app está aberto; ao abrir o app, ele também avisa o que passou. Para os lembretes funcionarem melhor no celular, **instale o app na tela de início** (o app já vem com ícone e manifesto para isso). Aviso em segundo plano com o app totalmente fechado depende do sistema e nem sempre é garantido em sites estáticos.
+
+> **Sobre a grade de horários:** as aulas de Outono 2026 e Inverno 2027 já vêm cadastradas no código (no bloco `TERMS` do `index.html`). Para mudar de semestre no futuro, edite esse bloco.
 
 ## ☁️ Ativar a sincronização entre aparelhos (uma vez só)
 
