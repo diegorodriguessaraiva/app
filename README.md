@@ -10,18 +10,21 @@ Para acessar do celular, publique com o **GitHub Pages** (Settings → Pages →
 
 ## Funcionalidades
 
+- 📱 **Interface no estilo iPhone (iOS)** — título grande, folhas deslizantes, abas na base e toques com resposta tátil
 - ➕ **Adicionar itens** com título, tipo, matéria, data, hora e anotações
+- 📎 **Anexos**: guarde **PDF, fotos e imagens** (JPEG/PNG/etc.) em cada item — imagens abrem em tela cheia, PDFs abrem numa nova aba
+- 🗓️ **Visão de calendário** mensal com bolinhas nos dias que têm itens e a lista do dia selecionado
 - 🏷️ **Tipos**: dever de casa, prova, trabalho, data importante e outros
-- 📅 **Visualizações**: Próximos, Hoje, Esta semana, Atrasados, Concluídos e Todos
-- 🔍 **Busca e filtros** por texto, tipo e matéria
-- ⚠️ **Alertas visuais**: itens atrasados, para hoje, amanhã e próximos dias
-- 📊 **Painel de resumo**: atrasados, para hoje, próximos 7 dias e provas por vir
+- 🔎 **Visualizações**: Próximos, Hoje, Semana, Atrasados, Concluídos e Todos
+- 🔍 **Busca** por texto (título, matéria ou anotação)
+- 📊 **Painel de resumo** tocável: atrasados, para hoje, próximos 7 dias e provas por vir
 - ✅ Marcar como concluído, editar e excluir
 - ☁️ **Sincronização automática** entre aparelhos com **login com Google** (Firebase)
-- 💾 Funciona também **sem login**, salvando no navegador (localStorage)
+- 💾 Funciona também **sem login**, salvando no aparelho
 - ⬇⬆ **Exportar/importar backup** em JSON
-- 🌙 Tema claro/escuro automático conforme o sistema
-- 📱 Layout responsivo (funciona bem no celular)
+- 🎨 **Tema**: Automático, Claro ou Escuro (nos Ajustes ⚙️)
+
+> **Sobre os anexos:** os arquivos ficam guardados **no próprio aparelho** (armazenamento local do navegador, que aguenta arquivos grandes). Os itens e as datas sincronizam pela nuvem; os arquivos em si não são enviados para a nuvem, então cada aparelho tem os seus.
 
 ## ☁️ Ativar a sincronização entre aparelhos (uma vez só)
 

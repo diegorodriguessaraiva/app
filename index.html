@@ -2,307 +2,443 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Minha Agenda Escolar</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Agenda">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<title>Agenda Escolar</title>
 <style>
   :root {
-    --bg: #f4f6fb;
-    --card: #ffffff;
-    --text: #1c2333;
-    --muted: #6b7280;
-    --border: #e3e7f0;
-    --primary: #4f6df5;
-    --primary-soft: #e8ecfe;
-    --danger: #e5484d;
-    --danger-soft: #fdeaea;
-    --warn: #d97706;
-    --warn-soft: #fef3e2;
-    --ok: #16a34a;
-    --ok-soft: #e6f6ec;
-    --shadow: 0 2px 10px rgba(28, 35, 51, 0.07);
-    --radius: 14px;
+    --bg: #f2f2f7;
+    --group: #ffffff;
+    --elev: #ffffff;
+    --label: #000000;
+    --label2: rgba(60,60,67,.6);
+    --label3: rgba(60,60,67,.3);
+    --sep: rgba(60,60,67,.18);
+    --fill: rgba(120,120,128,.12);
+    --fill2: rgba(120,120,128,.2);
+    --blue: #007aff;
+    --red: #ff3b30;
+    --orange: #ff9500;
+    --green: #34c759;
+    --purple: #af52de;
+    --gray: #8e8e93;
+    --nav-bg: rgba(249,249,249,.82);
+    --sheet: #ffffff;
+    --shadow: 0 12px 40px rgba(0,0,0,.16);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: env(safe-area-inset-top, 0px);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #12151f;
-      --card: #1b1f2e;
-      --text: #e8eaf2;
-      --muted: #9aa1b5;
-      --border: #2a3045;
-      --primary: #7288f7;
-      --primary-soft: #232c4e;
-      --danger: #f2555a;
-      --danger-soft: #3a2226;
-      --warn: #f0a13a;
-      --warn-soft: #3a2f1c;
-      --ok: #3ecf6f;
-      --ok-soft: #1c3327;
-      --shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+      --bg: #000000; --group: #1c1c1e; --elev: #2c2c2e; --label: #ffffff;
+      --label2: rgba(235,235,245,.6); --label3: rgba(235,235,245,.3);
+      --sep: rgba(84,84,88,.65); --fill: rgba(120,120,128,.24); --fill2: rgba(120,120,128,.32);
+      --blue: #0a84ff; --red: #ff453a; --orange: #ff9f0a; --green: #30d158; --purple: #bf5af2;
+      --nav-bg: rgba(22,22,24,.82); --sheet: #1c1c1e; --shadow: 0 12px 40px rgba(0,0,0,.5);
     }
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root[data-theme="light"] {
+    --bg:#f2f2f7;--group:#fff;--elev:#fff;--label:#000;--label2:rgba(60,60,67,.6);--label3:rgba(60,60,67,.3);
+    --sep:rgba(60,60,67,.18);--fill:rgba(120,120,128,.12);--fill2:rgba(120,120,128,.2);
+    --blue:#007aff;--red:#ff3b30;--orange:#ff9500;--green:#34c759;--purple:#af52de;
+    --nav-bg:rgba(249,249,249,.82);--sheet:#fff;--shadow:0 12px 40px rgba(0,0,0,.16);
+  }
+  :root[data-theme="dark"] {
+    --bg:#000;--group:#1c1c1e;--elev:#2c2c2e;--label:#fff;--label2:rgba(235,235,245,.6);--label3:rgba(235,235,245,.3);
+    --sep:rgba(84,84,88,.65);--fill:rgba(120,120,128,.24);--fill2:rgba(120,120,128,.32);
+    --blue:#0a84ff;--red:#ff453a;--orange:#ff9f0a;--green:#30d158;--purple:#bf5af2;
+    --nav-bg:rgba(22,22,24,.82);--sheet:#1c1c1e;--shadow:0 12px 40px rgba(0,0,0,.5);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  @media (prefers-reduced-motion: reduce) { * { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+  html, body { height: 100%; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg); color: var(--label);
+    -webkit-font-smoothing: antialiased; overscroll-behavior-y: none;
   }
-  .container { max-width: 900px; margin: 0 auto; padding: 24px 16px 80px; }
+  button { font-family: inherit; cursor: pointer; }
+  input, textarea, select { font-family: inherit; }
+  ::selection { background: color-mix(in srgb, var(--blue) 30%, transparent); }
 
-  header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
-  header h1 { font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
-  .header-actions { display: flex; gap: 8px; }
+  .app { max-width: 640px; margin: 0 auto; min-height: 100%; position: relative; }
 
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
-  .stat {
-    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 14px 16px; box-shadow: var(--shadow);
+  /* ---- Nav / Large title ---- */
+  .nav {
+    position: sticky; top: 0; z-index: 30;
+    background: var(--nav-bg); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+    padding-top: var(--safe-t); border-bottom: .5px solid var(--sep);
   }
-  .stat .num { font-size: 1.6rem; font-weight: 700; }
-  .stat .label { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
-  .stat.alert .num { color: var(--danger); }
-  .stat.warn .num { color: var(--warn); }
-  .stat.ok .num { color: var(--ok); }
+  .nav-row { display: flex; align-items: flex-end; justify-content: space-between; padding: 6px 16px 4px; gap: 12px; }
+  .nav-row h1 { font-size: 2.05rem; font-weight: 800; letter-spacing: .01em; line-height: 1.1; }
+  .nav-sub { font-size: .82rem; color: var(--label2); font-weight: 600; margin: 2px 2px 0; padding: 0 16px; }
+  .nav-actions { display: flex; gap: 6px; align-items: center; padding-bottom: 6px; }
+  .icon-round {
+    width: 34px; height: 34px; border-radius: 50%; border: none; background: var(--fill);
+    color: var(--blue); font-size: 1.05rem; display: flex; align-items: center; justify-content: center;
+    transition: transform .12s, background .15s;
+  }
+  .icon-round:active { transform: scale(.9); background: var(--fill2); }
 
-  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; align-items: center; }
-  .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
-  .tab {
-    border: 1px solid var(--border); background: var(--card); color: var(--muted);
-    padding: 7px 14px; border-radius: 999px; cursor: pointer; font-size: 0.85rem; font-weight: 500;
-    transition: all .15s;
+  .searchbar { padding: 6px 16px 8px; }
+  .searchbar .sb {
+    display: flex; align-items: center; gap: 7px; background: var(--fill); border-radius: 10px;
+    padding: 8px 10px; color: var(--label2);
   }
-  .tab:hover { border-color: var(--primary); color: var(--primary); }
-  .tab.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .searchbar input {
+    border: none; background: transparent; outline: none; color: var(--label); font-size: 1.02rem; flex: 1; min-width: 0;
+  }
+  .searchbar input::placeholder { color: var(--label2); }
+  .sb .clear { display: none; border: none; background: var(--label3); color: var(--group); width: 18px; height: 18px; border-radius: 50%; font-size: .7rem; align-items: center; justify-content: center; }
+  .sb.has-text .clear { display: flex; }
 
-  .search { flex: 1; min-width: 180px; }
-  input, select, textarea, button {
-    font-family: inherit; font-size: 0.95rem; color: var(--text);
+  .segs { display: flex; gap: 7px; overflow-x: auto; padding: 2px 16px 12px; scrollbar-width: none; }
+  .segs::-webkit-scrollbar { display: none; }
+  .seg {
+    flex-shrink: 0; border: none; background: var(--fill); color: var(--label); font-size: .86rem; font-weight: 600;
+    padding: 7px 14px; border-radius: 999px; transition: transform .12s, background .15s, color .15s; white-space: nowrap;
   }
-  input[type="text"], input[type="date"], input[type="time"], select, textarea {
-    width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px;
-    background: var(--card); outline: none; transition: border-color .15s;
-  }
-  input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+  .seg:active { transform: scale(.94); }
+  .seg.active { background: var(--blue); color: #fff; }
+  .seg .badge-n { font-weight: 700; margin-left: 5px; opacity: .8; }
 
-  .btn {
-    display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px;
-    border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem;
-    transition: opacity .15s, transform .05s;
-  }
-  .btn:active { transform: scale(0.98); }
-  .btn-primary { background: var(--primary); color: #fff; }
-  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
-  .btn-ghost:hover { color: var(--primary); border-color: var(--primary); }
-  .btn:hover { opacity: 0.9; }
+  /* ---- Content ---- */
+  main { padding: 8px 16px 130px; }
+  main[hidden] { display: none; }
 
-  .list { display: flex; flex-direction: column; gap: 10px; }
-  .day-group { margin-top: 10px; }
-  .day-header { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 8px 2px 8px; }
-  .day-header.today { color: var(--primary); }
-  .day-header.late { color: var(--danger); }
+  /* summary pills */
+  .summary { display: flex; gap: 10px; overflow-x: auto; padding: 6px 0 12px; scrollbar-width: none; }
+  .summary::-webkit-scrollbar { display: none; }
+  .sumcard {
+    flex-shrink: 0; min-width: 108px; background: var(--group); border-radius: 16px; padding: 12px 14px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.04); border: none; text-align: left; transition: transform .12s;
+  }
+  .sumcard:active { transform: scale(.96); }
+  .sumcard .n { font-size: 1.7rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+  .sumcard .l { font-size: .76rem; color: var(--label2); font-weight: 600; margin-top: 5px; }
+  .sumcard.red .n { color: var(--red); }
+  .sumcard.orange .n { color: var(--orange); }
+  .sumcard.blue .n { color: var(--blue); }
+  .sumcard.purple .n { color: var(--purple); }
 
-  .item {
-    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 14px 16px; box-shadow: var(--shadow); display: flex; gap: 12px; align-items: flex-start;
-    transition: opacity .2s;
+  /* sync row */
+  .syncbar {
+    display: flex; align-items: center; gap: 10px; background: var(--group); border-radius: 14px;
+    padding: 11px 14px; margin-bottom: 16px; font-size: .9rem; box-shadow: 0 1px 2px rgba(0,0,0,.04);
   }
-  .item.done { opacity: 0.55; }
-  .item.done .item-title { text-decoration: line-through; }
-  .item-check {
-    flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border);
-    background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center;
-    color: transparent; font-size: 13px; margin-top: 2px; transition: all .15s;
-  }
-  .item-check:hover { border-color: var(--ok); }
-  .item.done .item-check { background: var(--ok); border-color: var(--ok); color: #fff; }
-  .item-body { flex: 1; min-width: 0; }
-  .item-title { font-weight: 600; font-size: 1rem; word-wrap: break-word; }
-  .item-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; align-items: center; }
-  .item-notes { margin-top: 6px; font-size: 0.85rem; color: var(--muted); white-space: pre-wrap; word-wrap: break-word; }
-  .item-actions { display: flex; gap: 4px; flex-shrink: 0; }
-  .icon-btn {
-    background: transparent; border: none; cursor: pointer; padding: 6px; border-radius: 8px;
-    color: var(--muted); font-size: 0.95rem; line-height: 1;
-  }
-  .icon-btn:hover { background: var(--primary-soft); color: var(--primary); }
-  .icon-btn.del:hover { background: var(--danger-soft); color: var(--danger); }
+  .syncbar .spacer { flex: 1; }
+  .sdot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .sdot.on { background: var(--green); } .sdot.off { background: var(--gray); }
+  .sdot.err { background: var(--red); } .sdot.wait { background: var(--orange); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .mini-btn { border: none; background: var(--blue); color: #fff; font-weight: 600; font-size: .82rem; padding: 7px 13px; border-radius: 9px; display: inline-flex; align-items: center; gap: 6px; }
+  .mini-btn.ghost { background: var(--fill); color: var(--blue); }
+  .mini-btn:active { opacity: .7; }
+  .g-ic { width: 15px; height: 15px; }
 
-  .badge {
-    display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 600;
-    padding: 3px 9px; border-radius: 999px;
-  }
-  .badge.type-dever   { background: var(--primary-soft); color: var(--primary); }
-  .badge.type-prova   { background: var(--danger-soft); color: var(--danger); }
-  .badge.type-trabalho{ background: var(--warn-soft); color: var(--warn); }
-  .badge.type-evento  { background: var(--ok-soft); color: var(--ok); }
-  .badge.type-outro   { background: var(--border); color: var(--muted); }
-  .badge.subject { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
-  .badge.time { background: transparent; color: var(--muted); padding-left: 0; }
-  .badge.due-late  { background: var(--danger-soft); color: var(--danger); }
-  .badge.due-today { background: var(--warn-soft); color: var(--warn); }
-  .badge.due-soon  { background: var(--primary-soft); color: var(--primary); }
+  .day-sec { margin-bottom: 20px; }
+  .day-title { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--label2); margin: 4px 4px 8px; }
+  .day-title.today { color: var(--blue); }
+  .day-title.late { color: var(--red); }
 
-  .empty {
-    text-align: center; padding: 48px 16px; color: var(--muted);
-    background: var(--card); border: 1px dashed var(--border); border-radius: var(--radius);
+  .group { background: var(--group); border-radius: 16px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; position: relative; }
+  .row + .row::before { content: ""; position: absolute; left: 48px; right: 0; top: 0; height: .5px; background: var(--sep); }
+  .circle {
+    flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--c, var(--gray));
+    background: transparent; position: relative; transition: transform .15s; margin-top: 1px; align-self: flex-start;
   }
-  .empty .big { font-size: 2.4rem; margin-bottom: 8px; }
+  .circle:active { transform: scale(.85); }
+  .row.done .circle { background: var(--c, var(--gray)); }
+  .row.done .circle::after { content: "✓"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: .8rem; font-weight: 800; }
+  .row-main { flex: 1; min-width: 0; }
+  .row-title { font-size: 1.02rem; font-weight: 500; line-height: 1.3; word-wrap: break-word; }
+  .row.done .row-title { color: var(--label2); text-decoration: line-through; }
+  .row-sub { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; align-items: center; font-size: .8rem; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; font-size: .74rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: var(--fill); color: var(--label2); }
+  .chip.type { color: #fff; }
+  .chip.due-late { background: color-mix(in srgb, var(--red) 16%, transparent); color: var(--red); }
+  .chip.due-today { background: color-mix(in srgb, var(--orange) 16%, transparent); color: var(--orange); }
+  .chip.due-soon { background: color-mix(in srgb, var(--blue) 14%, transparent); color: var(--blue); }
+  .chip.att { background: var(--fill); color: var(--label2); }
+  .chev { color: var(--label3); font-size: 1.3rem; font-weight: 400; flex-shrink: 0; align-self: center; }
 
-  /* Modal */
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(10, 14, 25, 0.55); display: none;
-    align-items: flex-start; justify-content: center; padding: 24px 16px; z-index: 50; overflow-y: auto;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--card); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 480px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.25); margin-top: 4vh;
-  }
-  .modal h2 { font-size: 1.15rem; margin-bottom: 16px; }
-  .field { margin-bottom: 14px; }
-  .field label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+  .empty { text-align: center; padding: 60px 20px; color: var(--label2); }
+  .empty .big { font-size: 3rem; margin-bottom: 10px; }
+  .empty strong { display: block; color: var(--label); font-size: 1.05rem; margin-bottom: 4px; }
+  .empty p { font-size: .9rem; }
 
-  .fab {
-    position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 50%;
-    background: var(--primary); color: #fff; border: none; font-size: 1.7rem; cursor: pointer;
-    box-shadow: 0 6px 18px rgba(79, 109, 245, 0.45); display: flex; align-items: center; justify-content: center;
-    z-index: 40;
+  /* ---- Calendar ---- */
+  .cal-head { display: flex; align-items: center; justify-content: space-between; margin: 4px 2px 14px; }
+  .cal-head .m { font-size: 1.3rem; font-weight: 800; text-transform: capitalize; }
+  .cal-nav { display: flex; gap: 4px; align-items: center; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal-wd { text-align: center; font-size: .72rem; font-weight: 700; color: var(--label2); padding: 4px 0 8px; text-transform: uppercase; }
+  .cal-cell {
+    aspect-ratio: 1; border: none; background: transparent; border-radius: 50%; position: relative;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    font-size: .95rem; color: var(--label); font-variant-numeric: tabular-nums; transition: transform .1s;
   }
-  .fab:hover { opacity: 0.92; }
+  .cal-cell:active { transform: scale(.9); }
+  .cal-cell.other { color: var(--label3); }
+  .cal-cell.today { color: var(--red); font-weight: 800; }
+  .cal-cell.sel { background: var(--blue); color: #fff; font-weight: 700; }
+  .cal-cell.sel.today { color: #fff; }
+  .cal-dots { display: flex; gap: 2px; position: absolute; bottom: 6px; }
+  .cal-dot { width: 5px; height: 5px; border-radius: 50%; }
+  .cal-cell.sel .cal-dot { background: #fff !important; }
+  .cal-daylist { margin-top: 20px; }
+  .cal-daylist .day-title { font-size: .9rem; text-transform: none; color: var(--label); letter-spacing: 0; }
 
-  .sync-bar {
-    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 10px 14px; margin-bottom: 16px; font-size: 0.85rem; color: var(--muted);
-    box-shadow: var(--shadow);
+  /* ---- Tab bar ---- */
+  .tabbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 35;
+    background: var(--nav-bg); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-top: .5px solid var(--sep); display: flex; align-items: center; justify-content: space-around;
+    padding: 8px 20px calc(8px + var(--safe-b)); max-width: 640px; margin: 0 auto;
   }
-  .sync-bar a { color: var(--primary); font-weight: 600; text-decoration: none; }
-  .sync-bar a:hover { text-decoration: underline; }
-  .sync-bar .spacer { flex: 1; }
-  .sync-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-  .sync-dot.on  { background: var(--ok); }
-  .sync-dot.off { background: var(--muted); opacity: .5; }
-  .sync-dot.err { background: var(--danger); }
-  .sync-dot.wait { background: var(--warn); animation: pulse 1s infinite; }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
-  .btn-sm { padding: 6px 12px; font-size: 0.82rem; }
-  .g-btn { display: inline-flex; align-items: center; gap: 7px; }
-  .g-btn svg { width: 16px; height: 16px; }
+  .tab-btn { border: none; background: transparent; color: var(--label2); display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: .66rem; font-weight: 600; padding: 2px 16px; }
+  .tab-btn .ic { font-size: 1.35rem; line-height: 1; }
+  .tab-btn.active { color: var(--blue); }
+  .add-fab {
+    width: 54px; height: 54px; border-radius: 50%; border: none; background: var(--blue); color: #fff;
+    font-size: 1.9rem; font-weight: 300; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--blue) 45%, transparent); margin-top: -22px; transition: transform .12s;
+  }
+  .add-fab:active { transform: scale(.88); }
 
-  @media (max-width: 560px) {
-    .row2 { grid-template-columns: 1fr; }
-    header h1 { font-size: 1.25rem; }
+  /* ---- Sheet ---- */
+  .backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.4); opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 40; }
+  .backdrop.show { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; background: var(--sheet);
+    border-radius: 14px 14px 0 0; max-width: 640px; margin: 0 auto; max-height: 94vh; display: flex; flex-direction: column;
+    transform: translateY(100%); transition: transform .34s cubic-bezier(.32,.72,0,1); box-shadow: var(--shadow);
+    padding-bottom: var(--safe-b);
   }
+  .sheet.open { transform: translateY(0); }
+  .grabber-wrap { padding: 8px 0 2px; display: flex; justify-content: center; flex-shrink: 0; cursor: grab; touch-action: none; }
+  .grabber { width: 36px; height: 5px; border-radius: 3px; background: var(--label3); }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; padding: 4px 16px 10px; flex-shrink: 0; }
+  .sheet-head h2 { font-size: 1.1rem; font-weight: 700; }
+  .sheet-head .cancel { border: none; background: transparent; color: var(--blue); font-size: 1.02rem; }
+  .sheet-head .save { border: none; background: transparent; color: var(--blue); font-size: 1.02rem; font-weight: 700; }
+  .sheet-head .save:disabled { color: var(--label3); }
+  .sheet-body { overflow-y: auto; padding: 4px 16px 24px; -webkit-overflow-scrolling: touch; }
+
+  .field { margin-bottom: 16px; }
+  .field > label { display: block; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--label2); margin: 0 4px 7px; }
+  .inp {
+    width: 100%; padding: 12px 14px; border: none; background: var(--fill); border-radius: 11px; color: var(--label);
+    font-size: 1.02rem; outline: none; -webkit-appearance: none; appearance: none;
+  }
+  textarea.inp { resize: none; min-height: 76px; line-height: 1.45; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .type-pick { display: flex; gap: 8px; flex-wrap: wrap; }
+  .type-opt {
+    border: none; background: var(--fill); color: var(--label); border-radius: 11px; padding: 10px 12px; font-size: .9rem;
+    font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: transform .12s;
+  }
+  .type-opt:active { transform: scale(.94); }
+  .type-opt.sel { color: #fff; }
+
+  /* attachments */
+  .att-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 10px; }
+  .att-add {
+    aspect-ratio: 1; border: 2px dashed var(--label3); border-radius: 12px; background: var(--fill);
+    color: var(--blue); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    font-size: .72rem; font-weight: 600;
+  }
+  .att-add .plus { font-size: 1.5rem; line-height: 1; }
+  .att-item { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--fill); border: none; padding: 0; display: block; }
+  .att-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .att-item .pdf { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--red); }
+  .att-item .pdf .ic { font-size: 1.6rem; }
+  .att-item .pdf .nm { font-size: .6rem; color: var(--label2); padding: 0 4px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .att-item.missing { opacity: .55; }
+  .att-item .rm { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; border-radius: 50%; border: none; background: rgba(0,0,0,.6); color: #fff; font-size: .7rem; display: flex; align-items: center; justify-content: center; }
+  .att-hint { font-size: .76rem; color: var(--label2); margin: 8px 4px 0; }
+
+  .delete-btn { width: 100%; padding: 13px; border: none; background: var(--group); color: var(--red); border-radius: 12px; font-size: 1.02rem; font-weight: 600; margin-top: 8px; }
+  .delete-btn:active { opacity: .6; }
+
+  /* settings list */
+  .set-group { background: var(--group); border-radius: 14px; overflow: hidden; margin-bottom: 20px; }
+  .set-row { display: flex; align-items: center; gap: 12px; padding: 13px 15px; position: relative; font-size: 1.02rem; border: none; background: transparent; width: 100%; text-align: left; color: var(--label); }
+  .set-row + .set-row::before { content: ""; position: absolute; left: 15px; right: 0; top: 0; height: .5px; background: var(--sep); }
+  .set-row .ic { font-size: 1.1rem; width: 24px; text-align: center; }
+  .set-row .val { margin-left: auto; color: var(--label2); font-size: .92rem; }
+  .seg-ctl { display: inline-flex; background: var(--fill); border-radius: 9px; padding: 2px; margin-left: auto; }
+  .seg-ctl button { border: none; background: transparent; color: var(--label); font-size: .82rem; font-weight: 600; padding: 5px 12px; border-radius: 7px; }
+  .seg-ctl button.on { background: var(--elev); box-shadow: 0 1px 2px rgba(0,0,0,.15); }
+
+  /* lightbox */
+  .lightbox { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.92); display: none; align-items: center; justify-content: center; padding: 20px; }
+  .lightbox.show { display: flex; }
+  .lightbox img { max-width: 100%; max-height: 90vh; border-radius: 8px; }
+  .lightbox .close { position: absolute; top: calc(16px + var(--safe-t)); right: 16px; width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(255,255,255,.2); color: #fff; font-size: 1.1rem; }
+
+  /* toast */
+  .toast { position: fixed; left: 50%; bottom: calc(100px + var(--safe-b)); transform: translateX(-50%) translateY(20px); background: rgba(30,30,30,.94); color: #fff; padding: 11px 18px; border-radius: 12px; font-size: .9rem; font-weight: 500; opacity: 0; pointer-events: none; transition: all .25s; z-index: 70; box-shadow: 0 6px 20px rgba(0,0,0,.3); max-width: 88%; text-align: center; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (min-width: 641px) { .sheet, .tabbar { border-radius: 14px 14px 0 0; } }
 </style>
 </head>
 <body>
-<div class="container">
-  <header>
-    <h1>📚 Minha Agenda Escolar</h1>
-    <div class="header-actions">
-      <button class="btn btn-ghost" onclick="exportData()" title="Baixar backup em JSON">⬇ Exportar</button>
-      <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()" title="Restaurar backup JSON">⬆ Importar</button>
-      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+<div class="app">
+  <div class="nav">
+    <div class="nav-row">
+      <h1>Agenda</h1>
+      <div class="nav-actions">
+        <button class="icon-round" id="settingsBtn" aria-label="Ajustes">⚙️</button>
+      </div>
     </div>
-  </header>
-
-  <div class="sync-bar" id="syncBar"></div>
-
-  <div class="stats" id="stats"></div>
-
-  <div class="toolbar">
-    <div class="tabs" id="tabs">
-      <button class="tab active" data-view="proximos">Próximos</button>
-      <button class="tab" data-view="hoje">Hoje</button>
-      <button class="tab" data-view="semana">Esta semana</button>
-      <button class="tab" data-view="atrasados">Atrasados</button>
-      <button class="tab" data-view="concluidos">Concluídos</button>
-      <button class="tab" data-view="todos">Todos</button>
+    <div class="nav-sub" id="navSub"></div>
+    <div class="searchbar">
+      <div class="sb" id="sbWrap">
+        <span>🔍</span>
+        <input type="text" id="search" placeholder="Buscar" autocomplete="off">
+        <button class="clear" id="searchClear" aria-label="Limpar">✕</button>
+      </div>
+    </div>
+    <div class="segs" id="segs">
+      <button class="seg active" data-view="proximos">Próximos</button>
+      <button class="seg" data-view="hoje">Hoje</button>
+      <button class="seg" data-view="semana">Semana</button>
+      <button class="seg" data-view="atrasados">Atrasados</button>
+      <button class="seg" data-view="concluidos">Concluídos</button>
+      <button class="seg" data-view="todos">Todos</button>
     </div>
   </div>
 
-  <div class="toolbar">
-    <input type="text" class="search" id="search" placeholder="🔍 Buscar por título, matéria ou anotação...">
-    <select id="filterType" style="width:auto">
-      <option value="">Todos os tipos</option>
-      <option value="dever">📝 Dever de casa</option>
-      <option value="prova">📄 Prova</option>
-      <option value="trabalho">📁 Trabalho</option>
-      <option value="evento">📅 Data importante</option>
-      <option value="outro">📌 Outro</option>
-    </select>
-    <select id="filterSubject" style="width:auto">
-      <option value="">Todas as matérias</option>
-    </select>
-  </div>
+  <main id="viewList">
+    <div class="syncbar" id="syncBar"></div>
+    <div class="summary" id="summary"></div>
+    <div id="list"></div>
+  </main>
 
-  <div class="list" id="list"></div>
+  <main id="viewCal" hidden>
+    <div class="cal-head">
+      <div class="m" id="calMonth"></div>
+      <div class="cal-nav">
+        <button class="icon-round" id="calPrev">‹</button>
+        <button class="icon-round" id="calToday" style="width:auto;padding:0 12px;font-size:.85rem;font-weight:700;">Hoje</button>
+        <button class="icon-round" id="calNext">›</button>
+      </div>
+    </div>
+    <div class="cal-grid" id="calWeekdays"></div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-daylist" id="calDayList"></div>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tab-btn active" data-tab="list"><span class="ic">☰</span>Lista</button>
+    <button class="add-fab" id="addBtn" aria-label="Novo item">+</button>
+    <button class="tab-btn" data-tab="cal"><span class="ic">📅</span>Calendário</button>
+  </nav>
 </div>
 
-<button class="fab" onclick="openModal()" title="Adicionar item">+</button>
-
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal">
-    <h2 id="modalTitle">Novo item</h2>
-    <form id="itemForm" onsubmit="saveItem(event)">
+<!-- Item sheet -->
+<div class="backdrop" id="itemBackdrop"></div>
+<div class="sheet" id="itemSheet" role="dialog" aria-modal="true">
+  <div class="grabber-wrap" id="itemGrabber"><div class="grabber"></div></div>
+  <div class="sheet-head">
+    <button class="cancel" id="itemCancel">Cancelar</button>
+    <h2 id="itemTitle">Novo</h2>
+    <button class="save" id="itemSave">Salvar</button>
+  </div>
+  <div class="sheet-body">
+    <div class="field">
+      <label>Título</label>
+      <input type="text" class="inp" id="fTitle" placeholder="Ex.: Prova de matemática" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Tipo</label>
+      <div class="type-pick" id="fTypePick"></div>
+    </div>
+    <div class="field">
+      <label>Matéria</label>
+      <input type="text" class="inp" id="fSubject" list="subjectList" placeholder="Ex.: Matemática" autocomplete="off">
+      <datalist id="subjectList"></datalist>
+    </div>
+    <div class="two">
       <div class="field">
-        <label for="fTitle">Título *</label>
-        <input type="text" id="fTitle" required placeholder="Ex.: Exercícios cap. 5, Prova de matemática...">
-      </div>
-      <div class="row2">
-        <div class="field">
-          <label for="fType">Tipo</label>
-          <select id="fType">
-            <option value="dever">📝 Dever de casa</option>
-            <option value="prova">📄 Prova</option>
-            <option value="trabalho">📁 Trabalho</option>
-            <option value="evento">📅 Data importante</option>
-            <option value="outro">📌 Outro</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="fSubject">Matéria</label>
-          <input type="text" id="fSubject" list="subjectList" placeholder="Ex.: Matemática">
-          <datalist id="subjectList"></datalist>
-        </div>
-      </div>
-      <div class="row2">
-        <div class="field">
-          <label for="fDate">Data *</label>
-          <input type="date" id="fDate" required>
-        </div>
-        <div class="field">
-          <label for="fTime">Hora (opcional)</label>
-          <input type="time" id="fTime">
-        </div>
+        <label>Data</label>
+        <input type="date" class="inp" id="fDate">
       </div>
       <div class="field">
-        <label for="fNotes">Anotações (opcional)</label>
-        <textarea id="fNotes" rows="3" placeholder="Detalhes, páginas, conteúdo da prova..."></textarea>
+        <label>Hora</label>
+        <input type="time" class="inp" id="fTime">
       </div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
-        <button type="submit" class="btn btn-primary" id="saveBtn">Salvar</button>
-      </div>
-    </form>
+    </div>
+    <div class="field">
+      <label>Anotações</label>
+      <textarea class="inp" id="fNotes" placeholder="Detalhes, páginas, conteúdo..."></textarea>
+    </div>
+    <div class="field">
+      <label>Anexos — PDF, fotos, imagens</label>
+      <div class="att-grid" id="attGrid"></div>
+      <input type="file" id="fFiles" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp,application/pdf" multiple hidden>
+      <p class="att-hint">📎 Os arquivos ficam salvos neste aparelho.</p>
+    </div>
+    <button class="delete-btn" id="itemDelete" style="display:none">Excluir item</button>
   </div>
 </div>
 
-<!-- Firebase (sincronização + login com Google). Carregado do CDN oficial do Google. -->
+<!-- Settings sheet -->
+<div class="backdrop" id="setBackdrop"></div>
+<div class="sheet" id="setSheet" role="dialog" aria-modal="true">
+  <div class="grabber-wrap" id="setGrabber"><div class="grabber"></div></div>
+  <div class="sheet-head">
+    <span style="width:60px"></span>
+    <h2>Ajustes</h2>
+    <button class="cancel" id="setDone" style="font-weight:700">OK</button>
+  </div>
+  <div class="sheet-body">
+    <div class="field">
+      <label>Sincronização</label>
+      <div class="set-group"><div class="set-row" style="display:block" id="setSync"></div></div>
+    </div>
+    <div class="field">
+      <label>Aparência</label>
+      <div class="set-group">
+        <div class="set-row"><span class="ic">🎨</span> Tema
+          <div class="seg-ctl" id="themeCtl">
+            <button data-theme="auto" class="on">Auto</button>
+            <button data-theme="light">Claro</button>
+            <button data-theme="dark">Escuro</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Backup</label>
+      <div class="set-group">
+        <button class="set-row" id="btnExport"><span class="ic">⬇️</span> Exportar agenda (JSON)<span class="val">›</span></button>
+        <button class="set-row" id="btnImport"><span class="ic">⬆️</span> Importar agenda<span class="val">›</span></button>
+      </div>
+      <input type="file" id="importFile" accept=".json" hidden>
+      <p class="att-hint">O backup inclui os itens e datas. Os arquivos anexados ficam guardados só no aparelho.</p>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox"><button class="close" id="lbClose">✕</button><img id="lbImg" alt=""></div>
+<div class="toast" id="toast"></div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 
 <script>
 /* =====================================================================
-   CONFIGURAÇÃO DA SINCRONIZAÇÃO (Firebase)
-   ---------------------------------------------------------------------
-   Para ativar o login com Google e sincronizar entre celular e PC,
-   cole aqui os dados do SEU projeto Firebase (veja o passo a passo no
-   README). Enquanto estiver como está abaixo, o app funciona normal,
-   só que guardando os dados apenas neste aparelho.
+   CONFIGURAÇÃO DA SINCRONIZAÇÃO (Firebase) — veja o README para trocar.
    ===================================================================== */
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyC769XJjDK9eOuTkJyhlvbN3CJs-u5vsJs",
@@ -313,344 +449,430 @@ const FIREBASE_CONFIG = {
 /* ===================================================================== */
 
 const STORAGE_KEY = 'agenda-escolar-v1';
-const TYPE_LABELS = {
-  dever: '📝 Dever de casa',
-  prova: '📄 Prova',
-  trabalho: '📁 Trabalho',
-  evento: '📅 Data importante',
-  outro: '📌 Outro'
-};
+const TYPES = [
+  { key: 'dever',    label: 'Dever',    icon: '📝', color: 'var(--blue)' },
+  { key: 'prova',    label: 'Prova',    icon: '📄', color: 'var(--red)' },
+  { key: 'trabalho', label: 'Trabalho', icon: '📁', color: 'var(--orange)' },
+  { key: 'evento',   label: 'Data',     icon: '📅', color: 'var(--green)' },
+  { key: 'outro',    label: 'Outro',    icon: '📌', color: 'var(--gray)' }
+];
+const TYPE_MAP = Object.fromEntries(TYPES.map(t => [t.key, t]));
 
 let items = load();
 let currentView = 'proximos';
+let currentTab = 'list';
 let editingId = null;
+let pendingAtts = [];          // metadados dos anexos no formulário
+let attAddedThisSession = new Set();
+let attToDelete = new Set();
+let calCursor = new Date();    // mês visível no calendário
+let calSelected = todayStr();
 
-function load() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-  catch { return []; }
-}
-function persistLocal() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-}
-function persist() {
-  persistLocal();
-  pushRemote();
-}
-function uid() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-}
+function load() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; } }
+function persistLocal() { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
+function persist() { persistLocal(); pushRemote(); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function haptic() { if (navigator.vibrate) navigator.vibrate(8); }
 
-/* ---- datas ---- */
-function todayStr() {
-  const d = new Date();
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+/* ---------- IndexedDB (arquivos) ---------- */
+function openIDB() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('agenda-files', 1);
+    r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains('files')) r.result.createObjectStore('files'); };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
 }
+async function idbPut(key, blob) { const db = await openIDB(); return new Promise((res, rej) => { const tx = db.transaction('files', 'readwrite'); tx.objectStore('files').put(blob, key); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); }
+async function idbGet(key) { const db = await openIDB(); return new Promise((res, rej) => { const tx = db.transaction('files', 'readonly'); const q = tx.objectStore('files').get(key); q.onsuccess = () => res(q.result || null); q.onerror = () => rej(q.error); }); }
+async function idbDel(key) { try { const db = await openIDB(); return new Promise((res) => { const tx = db.transaction('files', 'readwrite'); tx.objectStore('files').delete(key); tx.oncomplete = res; tx.onerror = res; }); } catch { } }
+
+/* ---------- datas ---------- */
+function todayStr() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function dateStrOf(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 function daysDiff(dateStr) {
   const [y, m, d] = dateStr.split('-').map(Number);
   const [ty, tm, td] = todayStr().split('-').map(Number);
-  const a = new Date(y, m - 1, d);
-  const b = new Date(ty, tm - 1, td);
-  return Math.round((a - b) / 86400000);
+  return Math.round((new Date(y, m - 1, d) - new Date(ty, tm - 1, td)) / 86400000);
 }
 function formatDate(dateStr) {
   const [y, m, d] = dateStr.split('-').map(Number);
   const dt = new Date(y, m - 1, d);
-  const weekday = dt.toLocaleDateString('pt-BR', { weekday: 'long' });
-  const date = dt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
-  return weekday.charAt(0).toUpperCase() + weekday.slice(1) + ', ' + date + (y !== new Date().getFullYear() ? ' de ' + y : '');
+  const wd = dt.toLocaleDateString('pt-BR', { weekday: 'long' });
+  const dm = dt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
+  return wd.charAt(0).toUpperCase() + wd.slice(1) + ', ' + dm + (y !== new Date().getFullYear() ? ' de ' + y : '');
 }
-function dueBadge(item) {
-  if (item.done) return '';
-  const diff = daysDiff(item.date);
-  if (diff < 0) return `<span class="badge due-late">⚠ Atrasado ${-diff === 1 ? 'há 1 dia' : 'há ' + (-diff) + ' dias'}</span>`;
-  if (diff === 0) return '<span class="badge due-today">🔥 É hoje!</span>';
-  if (diff === 1) return '<span class="badge due-soon">Amanhã</span>';
-  if (diff <= 7) return `<span class="badge due-soon">Em ${diff} dias</span>`;
+function dueChip(it) {
+  if (it.done) return '';
+  const n = daysDiff(it.date);
+  if (n < 0) return `<span class="chip due-late">Atrasado ${-n === 1 ? '1 dia' : (-n) + ' dias'}</span>`;
+  if (n === 0) return '<span class="chip due-today">Hoje</span>';
+  if (n === 1) return '<span class="chip due-soon">Amanhã</span>';
+  if (n <= 7) return `<span class="chip due-soon">Em ${n} dias</span>`;
   return '';
 }
+function fmtBytes(b) { if (!b) return ''; if (b < 1024) return b + ' B'; if (b < 1048576) return (b / 1024).toFixed(0) + ' KB'; return (b / 1048576).toFixed(1) + ' MB'; }
 
-/* ---- filtros e views ---- */
+/* ---------- filtro / views ---------- */
 function visibleItems() {
   const q = document.getElementById('search').value.trim().toLowerCase();
-  const type = document.getElementById('filterType').value;
-  const subject = document.getElementById('filterSubject').value;
-
-  let result = items.filter(it => {
-    if (type && it.type !== type) return false;
-    if (subject && it.subject !== subject) return false;
-    if (q && !(it.title.toLowerCase().includes(q) ||
-               (it.subject || '').toLowerCase().includes(q) ||
-               (it.notes || '').toLowerCase().includes(q))) return false;
-    const diff = daysDiff(it.date);
+  let r = items.filter(it => {
+    if (q && !(it.title.toLowerCase().includes(q) || (it.subject || '').toLowerCase().includes(q) || (it.notes || '').toLowerCase().includes(q))) return false;
+    const n = daysDiff(it.date);
     switch (currentView) {
-      case 'proximos':   return !it.done && diff >= 0;
-      case 'hoje':       return !it.done && diff === 0;
-      case 'semana':     return !it.done && diff >= 0 && diff <= 7;
-      case 'atrasados':  return !it.done && diff < 0;
+      case 'proximos': return !it.done && n >= 0;
+      case 'hoje': return !it.done && n === 0;
+      case 'semana': return !it.done && n >= 0 && n <= 7;
+      case 'atrasados': return !it.done && n < 0;
       case 'concluidos': return it.done;
-      case 'todos':      return true;
+      case 'todos': return true;
     }
   });
-
-  result.sort((a, b) => (a.date + (a.time || '99:99')).localeCompare(b.date + (b.time || '99:99')));
-  if (currentView === 'concluidos') result.reverse();
-  return result;
+  r.sort((a, b) => (a.date + (a.time || '99:99')).localeCompare(b.date + (b.time || '99:99')));
+  if (currentView === 'concluidos') r.reverse();
+  return r;
 }
 
-/* ---- render ---- */
-function esc(s) {
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
+/* ---------- render ---------- */
 function render() {
-  renderStats();
-  renderSubjectFilters();
+  renderNavSub();
+  renderSummary();
+  renderSegBadges();
+  renderSyncBar();
+  renderSubjectList();
+  if (currentTab === 'list') renderList(); else renderCalendar();
+}
+
+function renderNavSub() {
+  const d = new Date();
+  const s = d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+  document.getElementById('navSub').textContent = s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function renderSummary() {
+  const pend = items.filter(it => !it.done);
+  const late = pend.filter(it => daysDiff(it.date) < 0).length;
+  const today = pend.filter(it => daysDiff(it.date) === 0).length;
+  const week = pend.filter(it => { const n = daysDiff(it.date); return n >= 0 && n <= 7; }).length;
+  const provas = pend.filter(it => it.type === 'prova' && daysDiff(it.date) >= 0).length;
+  const cards = [
+    { n: late, l: 'Atrasados', c: 'red', v: 'atrasados' },
+    { n: today, l: 'Hoje', c: 'orange', v: 'hoje' },
+    { n: week, l: 'Próx. 7 dias', c: 'blue', v: 'semana' },
+    { n: provas, l: 'Provas por vir', c: 'purple', v: 'proximos' }
+  ];
+  document.getElementById('summary').innerHTML = cards.map(c =>
+    `<button class="sumcard ${c.c}" data-view="${c.v}"><div class="n">${c.n}</div><div class="l">${c.l}</div></button>`
+  ).join('');
+}
+
+function renderSegBadges() {
+  document.querySelectorAll('.seg').forEach(s => s.classList.toggle('active', s.dataset.view === currentView));
+}
+
+function renderSubjectList() {
+  const subs = [...new Set(items.map(it => it.subject).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  document.getElementById('subjectList').innerHTML = subs.map(s => `<option value="${esc(s)}">`).join('');
+}
+
+function attMini(it) {
+  const n = (it.attachments || []).length;
+  if (!n) return '';
+  return `<span class="chip att">📎 ${n}</span>`;
+}
+
+function rowHtml(it) {
+  const t = TYPE_MAP[it.type] || TYPE_MAP.outro;
+  return `<div class="row ${it.done ? 'done' : ''}" data-id="${it.id}">
+    <button class="circle" style="--c:${t.color}" data-toggle="${it.id}" aria-label="Concluir"></button>
+    <div class="row-main" data-open="${it.id}">
+      <div class="row-title">${esc(it.title)}</div>
+      <div class="row-sub">
+        <span class="chip type" style="background:${t.color}">${t.icon} ${t.label}</span>
+        ${it.subject ? `<span class="chip">${esc(it.subject)}</span>` : ''}
+        ${it.time ? `<span class="chip">🕐 ${it.time}</span>` : ''}
+        ${dueChip(it)}${attMini(it)}
+      </div>
+    </div>
+    <span class="chev" data-open="${it.id}">›</span>
+  </div>`;
+}
+
+function groupByDate(list) {
+  const g = new Map();
+  for (const it of list) { if (!g.has(it.date)) g.set(it.date, []); g.get(it.date).push(it); }
+  return g;
+}
+
+function renderList() {
   const list = document.getElementById('list');
   const vis = visibleItems();
-
   if (!vis.length) {
-    const messages = {
-      proximos: ['🎉', 'Nada pendente por aqui!', 'Toque no + para adicionar um dever, prova ou data importante.'],
-      hoje: ['😌', 'Nada para hoje!', 'Aproveite para adiantar os próximos itens.'],
-      semana: ['🗓️', 'Semana livre!', 'Nenhum item nos próximos 7 dias.'],
-      atrasados: ['✅', 'Nenhum atraso!', 'Você está em dia com tudo.'],
-      concluidos: ['📭', 'Nada concluído ainda', 'Marque itens como feitos e eles aparecerão aqui.'],
-      todos: ['📚', 'Sua agenda está vazia', 'Toque no + para adicionar o primeiro item.']
-    };
-    const [icon, title, sub] = messages[currentView];
-    list.innerHTML = `<div class="empty"><div class="big">${icon}</div><strong>${title}</strong><p style="margin-top:6px;font-size:0.9rem">${sub}</p></div>`;
+    const M = {
+      proximos: ['🎉', 'Tudo em dia!', 'Toque em + para adicionar um item.'],
+      hoje: ['😌', 'Nada para hoje', 'Aproveite para adiantar.'],
+      semana: ['🗓️', 'Semana livre', 'Nada nos próximos 7 dias.'],
+      atrasados: ['✅', 'Sem atrasos', 'Você está em dia.'],
+      concluidos: ['📭', 'Nada concluído', 'Marque itens como feitos.'],
+      todos: ['📚', 'Agenda vazia', 'Toque em + para começar.']
+    }[currentView];
+    list.innerHTML = `<div class="empty"><div class="big">${M[0]}</div><strong>${M[1]}</strong><p>${M[2]}</p></div>`;
     return;
   }
-
-  // agrupa por data
-  const groups = new Map();
-  for (const it of vis) {
-    if (!groups.has(it.date)) groups.set(it.date, []);
-    groups.get(it.date).push(it);
-  }
-
   let html = '';
-  for (const [date, group] of groups) {
-    const diff = daysDiff(date);
+  for (const [date, group] of groupByDate(vis)) {
+    const n = daysDiff(date);
     let cls = '', prefix = '';
-    if (diff === 0) { cls = 'today'; prefix = 'Hoje — '; }
-    else if (diff === 1) { prefix = 'Amanhã — '; }
-    else if (diff < 0 && currentView !== 'concluidos' && currentView !== 'todos') { cls = 'late'; }
-    html += `<div class="day-group"><div class="day-header ${cls}">${prefix}${formatDate(date)}</div>`;
-    for (const it of group) html += itemHtml(it);
-    html += '</div>';
+    if (n === 0) { cls = 'today'; prefix = 'Hoje · '; }
+    else if (n === 1) prefix = 'Amanhã · ';
+    else if (n < 0 && currentView !== 'concluidos' && currentView !== 'todos') cls = 'late';
+    html += `<div class="day-sec"><div class="day-title ${cls}">${prefix}${formatDate(date)}</div><div class="group">${group.map(rowHtml).join('')}</div></div>`;
   }
   list.innerHTML = html;
 }
 
-function itemHtml(it) {
-  return `
-  <div class="item ${it.done ? 'done' : ''}">
-    <button class="item-check" onclick="toggleDone('${it.id}')" title="${it.done ? 'Desmarcar' : 'Marcar como concluído'}">✓</button>
-    <div class="item-body">
-      <div class="item-title">${esc(it.title)}</div>
-      <div class="item-meta">
-        <span class="badge type-${it.type}">${TYPE_LABELS[it.type] || it.type}</span>
-        ${it.subject ? `<span class="badge subject">${esc(it.subject)}</span>` : ''}
-        ${it.time ? `<span class="badge time">🕐 ${it.time}</span>` : ''}
-        ${dueBadge(it)}
-      </div>
-      ${it.notes ? `<div class="item-notes">${esc(it.notes)}</div>` : ''}
-    </div>
-    <div class="item-actions">
-      <button class="icon-btn" onclick="openModal('${it.id}')" title="Editar">✏️</button>
-      <button class="icon-btn del" onclick="deleteItem('${it.id}')" title="Excluir">🗑️</button>
-    </div>
-  </div>`;
-}
+/* ---------- calendário ---------- */
+function renderCalendar() {
+  const wd = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+  document.getElementById('calWeekdays').innerHTML = wd.map(d => `<div class="cal-wd">${d}</div>`).join('');
+  const y = calCursor.getFullYear(), m = calCursor.getMonth();
+  document.getElementById('calMonth').textContent = calCursor.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
-function renderStats() {
-  const pend = items.filter(it => !it.done);
-  const late = pend.filter(it => daysDiff(it.date) < 0).length;
-  const today = pend.filter(it => daysDiff(it.date) === 0).length;
-  const week = pend.filter(it => { const d = daysDiff(it.date); return d >= 0 && d <= 7; }).length;
-  const provas = pend.filter(it => it.type === 'prova' && daysDiff(it.date) >= 0).length;
-  document.getElementById('stats').innerHTML = `
-    <div class="stat ${late ? 'alert' : 'ok'}"><div class="num">${late}</div><div class="label">Atrasados</div></div>
-    <div class="stat ${today ? 'warn' : ''}"><div class="num">${today}</div><div class="label">Para hoje</div></div>
-    <div class="stat"><div class="num">${week}</div><div class="label">Nos próximos 7 dias</div></div>
-    <div class="stat"><div class="num">${provas}</div><div class="label">Provas por vir</div></div>`;
-}
+  const first = new Date(y, m, 1);
+  const start = new Date(first); start.setDate(1 - first.getDay());
+  const counts = new Map();
+  for (const it of items) { const set = counts.get(it.date) || new Set(); set.add(it.type); counts.set(it.date, set); }
 
-function renderSubjectFilters() {
-  const subjects = [...new Set(items.map(it => it.subject).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-  const sel = document.getElementById('filterSubject');
-  const current = sel.value;
-  sel.innerHTML = '<option value="">Todas as matérias</option>' +
-    subjects.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
-  if (subjects.includes(current)) sel.value = current;
-  document.getElementById('subjectList').innerHTML = subjects.map(s => `<option value="${esc(s)}">`).join('');
-}
-
-/* ---- ações ---- */
-function toggleDone(id) {
-  const it = items.find(i => i.id === id);
-  if (it) { it.done = !it.done; persist(); render(); }
-}
-
-function deleteItem(id) {
-  const it = items.find(i => i.id === id);
-  if (it && confirm(`Excluir "${it.title}"?`)) {
-    items = items.filter(i => i.id !== id);
-    persist(); render();
+  let cells = '';
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    const ds = dateStrOf(d);
+    const other = d.getMonth() !== m;
+    const isToday = ds === todayStr();
+    const isSel = ds === calSelected;
+    const types = counts.get(ds);
+    let dots = '';
+    if (types) {
+      dots = '<div class="cal-dots">' + [...types].slice(0, 4).map(t => `<span class="cal-dot" style="background:${(TYPE_MAP[t] || TYPE_MAP.outro).color}"></span>`).join('') + '</div>';
+    }
+    cells += `<button class="cal-cell ${other ? 'other' : ''} ${isToday ? 'today' : ''} ${isSel ? 'sel' : ''}" data-date="${ds}">${d.getDate()}${dots}</button>`;
   }
-}
+  document.getElementById('calGrid').innerHTML = cells;
 
-function openModal(id) {
-  editingId = id || null;
-  document.getElementById('modalTitle').textContent = id ? 'Editar item' : 'Novo item';
-  const form = document.getElementById('itemForm');
-  form.reset();
-  if (id) {
-    const it = items.find(i => i.id === id);
-    if (!it) return;
-    document.getElementById('fTitle').value = it.title;
-    document.getElementById('fType').value = it.type;
-    document.getElementById('fSubject').value = it.subject || '';
-    document.getElementById('fDate').value = it.date;
-    document.getElementById('fTime').value = it.time || '';
-    document.getElementById('fNotes').value = it.notes || '';
+  const dayItems = items.filter(it => it.date === calSelected).sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+  const dl = document.getElementById('calDayList');
+  if (!dayItems.length) {
+    dl.innerHTML = `<div class="day-title">${formatDate(calSelected)}</div><div class="empty" style="padding:30px 20px"><p>Nada neste dia.</p></div>`;
   } else {
-    document.getElementById('fDate').value = todayStr();
+    dl.innerHTML = `<div class="day-title">${formatDate(calSelected)}</div><div class="group">${dayItems.map(rowHtml).join('')}</div>`;
   }
-  document.getElementById('modalOverlay').classList.add('open');
-  document.getElementById('fTitle').focus();
 }
 
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
-  editingId = null;
+/* ---------- toggle / abrir ---------- */
+function toggleDone(id) { const it = items.find(i => i.id === id); if (it) { it.done = !it.done; haptic(); persist(); render(); } }
+
+/* ---------- sheet: item ---------- */
+function openItemSheet(id) {
+  editingId = id || null;
+  attAddedThisSession = new Set();
+  attToDelete = new Set();
+  document.getElementById('itemTitle').textContent = id ? 'Editar' : 'Novo';
+  document.getElementById('itemDelete').style.display = id ? 'block' : 'none';
+  const it = id ? items.find(i => i.id === id) : null;
+  document.getElementById('fTitle').value = it ? it.title : '';
+  document.getElementById('fSubject').value = it ? (it.subject || '') : '';
+  document.getElementById('fDate').value = it ? it.date : (currentTab === 'cal' ? calSelected : todayStr());
+  document.getElementById('fTime').value = it ? (it.time || '') : '';
+  document.getElementById('fNotes').value = it ? (it.notes || '') : '';
+  selectedType = it ? it.type : 'dever';
+  renderTypePick();
+  pendingAtts = it ? (it.attachments || []).map(a => ({ ...a })) : [];
+  renderAtts();
+  validateSave();
+  showSheet('itemSheet', 'itemBackdrop');
 }
 
-function saveItem(ev) {
-  ev.preventDefault();
+let selectedType = 'dever';
+function renderTypePick() {
+  document.getElementById('fTypePick').innerHTML = TYPES.map(t =>
+    `<button class="type-opt ${t.key === selectedType ? 'sel' : ''}" style="${t.key === selectedType ? 'background:' + t.color : ''}" data-type="${t.key}">${t.icon} ${t.label}</button>`
+  ).join('');
+}
+
+function renderAtts() {
+  const grid = document.getElementById('attGrid');
+  let html = `<button class="att-add" id="attAddBtn"><span class="plus">+</span>Adicionar</button>`;
+  html += pendingAtts.map((a, i) => {
+    const isImg = (a.type || '').startsWith('image/');
+    return `<button class="att-item" data-att-view="${i}">
+      ${isImg ? `<img data-thumb="${a.id}" alt="${esc(a.name)}">` : `<div class="pdf"><span class="ic">📄</span><span class="nm">${esc(a.name)}</span></div>`}
+      <span class="rm" data-att-rm="${i}">✕</span>
+    </button>`;
+  }).join('');
+  grid.innerHTML = html;
+  // carrega miniaturas das imagens
+  pendingAtts.forEach(a => {
+    if ((a.type || '').startsWith('image/')) {
+      const img = grid.querySelector(`[data-thumb="${a.id}"]`);
+      if (img) idbGet(a.id).then(blob => { if (blob) img.src = URL.createObjectURL(blob); else img.closest('.att-item').classList.add('missing'); });
+    }
+  });
+}
+
+async function handleFiles(fileList) {
+  const files = [...fileList];
+  for (const f of files) {
+    const okType = f.type.startsWith('image/') || f.type === 'application/pdf';
+    if (!okType) { toast('Só PDF e imagens são aceitos.'); continue; }
+    if (f.size > 25 * 1024 * 1024) { toast(`"${f.name}" é muito grande (máx. 25 MB).`); continue; }
+    const aid = uid();
+    await idbPut(aid, f);
+    attAddedThisSession.add(aid);
+    pendingAtts.push({ id: aid, name: f.name, type: f.type, size: f.size });
+  }
+  renderAtts();
+}
+
+function removeAtt(i) {
+  const a = pendingAtts[i]; if (!a) return;
+  if (attAddedThisSession.has(a.id)) { idbDel(a.id); attAddedThisSession.delete(a.id); }
+  else attToDelete.add(a.id);
+  pendingAtts.splice(i, 1);
+  renderAtts();
+}
+
+async function viewAtt(i) {
+  const a = pendingAtts[i]; if (!a) return;
+  const blob = await idbGet(a.id);
+  if (!blob) { toast('Arquivo salvo em outro aparelho.'); return; }
+  const url = URL.createObjectURL(blob);
+  if ((a.type || '').startsWith('image/')) openLightbox(url);
+  else { const link = document.createElement('a'); link.href = url; link.target = '_blank'; link.rel = 'noopener'; document.body.appendChild(link); link.click(); link.remove(); }
+}
+
+function validateSave() {
+  const ok = document.getElementById('fTitle').value.trim() && document.getElementById('fDate').value;
+  document.getElementById('itemSave').disabled = !ok;
+}
+
+function saveItem() {
   const data = {
     title: document.getElementById('fTitle').value.trim(),
-    type: document.getElementById('fType').value,
+    type: selectedType,
     subject: document.getElementById('fSubject').value.trim(),
     date: document.getElementById('fDate').value,
     time: document.getElementById('fTime').value,
-    notes: document.getElementById('fNotes').value.trim()
+    notes: document.getElementById('fNotes').value.trim(),
+    attachments: pendingAtts.map(a => ({ id: a.id, name: a.name, type: a.type, size: a.size }))
   };
   if (!data.title || !data.date) return;
-
-  if (editingId) {
-    const it = items.find(i => i.id === editingId);
-    if (it) Object.assign(it, data);
-  } else {
-    items.push({ id: uid(), done: false, createdAt: new Date().toISOString(), ...data });
-  }
-  persist();
-  closeModal();
-  render();
+  attToDelete.forEach(id => idbDel(id));
+  if (editingId) { const it = items.find(i => i.id === editingId); if (it) Object.assign(it, data); }
+  else items.push({ id: uid(), done: false, createdAt: new Date().toISOString(), ...data });
+  attAddedThisSession = new Set(); attToDelete = new Set();
+  persist(); closeSheet('itemSheet', 'itemBackdrop'); render();
 }
 
-/* ---- backup ---- */
+function cancelItem() {
+  attAddedThisSession.forEach(id => idbDel(id));   // descarta anexos não salvos
+  attAddedThisSession = new Set(); attToDelete = new Set();
+  closeSheet('itemSheet', 'itemBackdrop');
+}
+
+function deleteItem() {
+  const it = items.find(i => i.id === editingId); if (!it) return;
+  if (!confirm(`Excluir "${it.title}"?`)) return;
+  (it.attachments || []).forEach(a => idbDel(a.id));
+  items = items.filter(i => i.id !== editingId);
+  persist(); closeSheet('itemSheet', 'itemBackdrop'); render();
+}
+
+/* ---------- sheet infra + drag ---------- */
+function showSheet(sheetId, backId) {
+  document.getElementById(backId).classList.add('show');
+  const s = document.getElementById(sheetId);
+  s.style.transform = ''; requestAnimationFrame(() => s.classList.add('open'));
+}
+function closeSheet(sheetId, backId) {
+  document.getElementById(sheetId).classList.remove('open');
+  document.getElementById(backId).classList.remove('show');
+}
+function enableDrag(grabberId, sheetId, backId, onClose) {
+  const grab = document.getElementById(grabberId), sheet = document.getElementById(sheetId);
+  let sy = 0, dy = 0, dragging = false;
+  const down = e => { dragging = true; sy = (e.touches ? e.touches[0].clientY : e.clientY); sheet.style.transition = 'none'; };
+  const move = e => { if (!dragging) return; dy = Math.max(0, (e.touches ? e.touches[0].clientY : e.clientY) - sy); sheet.style.transform = `translateY(${dy}px)`; };
+  const up = () => { if (!dragging) return; dragging = false; sheet.style.transition = ''; if (dy > 110) { onClose(); } else sheet.style.transform = ''; dy = 0; };
+  grab.addEventListener('touchstart', down, { passive: true }); grab.addEventListener('touchmove', move, { passive: true }); grab.addEventListener('touchend', up);
+  grab.addEventListener('mousedown', e => { down(e); const mm = ev => move(ev), mu = () => { up(); document.removeEventListener('mousemove', mm); document.removeEventListener('mouseup', mu); }; document.addEventListener('mousemove', mm); document.addEventListener('mouseup', mu); });
+}
+
+/* ---------- lightbox / toast ---------- */
+function openLightbox(url) { document.getElementById('lbImg').src = url; document.getElementById('lightbox').classList.add('show'); }
+function closeLightbox() { document.getElementById('lightbox').classList.remove('show'); document.getElementById('lbImg').src = ''; }
+let toastTimer = null;
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600); }
+
+/* ---------- tema ---------- */
+function applyTheme(mode) {
+  const root = document.documentElement;
+  if (mode === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+  try { localStorage.setItem('agenda-theme', mode); } catch { }
+  document.querySelectorAll('#themeCtl button').forEach(b => b.classList.toggle('on', b.dataset.theme === mode));
+}
+
+/* ---------- backup ---------- */
 function exportData() {
   const blob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'agenda-escolar-' + todayStr() + '.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'agenda-' + todayStr() + '.json'; a.click(); URL.revokeObjectURL(a.href);
 }
-
 function importData(ev) {
-  const file = ev.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
+  const file = ev.target.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = () => {
     try {
-      const data = JSON.parse(reader.result);
-      if (!Array.isArray(data)) throw new Error();
-      if (confirm(`Importar ${data.length} itens? Isso substituirá sua agenda atual.`)) {
+      const data = JSON.parse(r.result);
+      if (!Array.isArray(data)) throw 0;
+      if (confirm(`Importar ${data.length} itens? Isso substitui a agenda atual.`)) {
         items = data.filter(it => it && it.title && it.date).map(it => ({
-          id: it.id || uid(),
-          title: String(it.title),
-          type: TYPE_LABELS[it.type] ? it.type : 'outro',
-          subject: it.subject || '',
-          date: it.date,
-          time: it.time || '',
-          notes: it.notes || '',
-          done: !!it.done,
-          createdAt: it.createdAt || new Date().toISOString()
+          id: it.id || uid(), title: String(it.title), type: TYPE_MAP[it.type] ? it.type : 'outro',
+          subject: it.subject || '', date: it.date, time: it.time || '', notes: it.notes || '',
+          done: !!it.done, attachments: Array.isArray(it.attachments) ? it.attachments : [], createdAt: it.createdAt || new Date().toISOString()
         }));
-        persist(); render();
+        persist(); render(); toast('Agenda importada.');
       }
-    } catch {
-      alert('Arquivo inválido. Selecione um backup JSON exportado por este app.');
-    }
+    } catch { toast('Arquivo inválido.'); }
     ev.target.value = '';
   };
-  reader.readAsText(file);
+  r.readAsText(file);
 }
 
-/* ---- sincronização na nuvem (Firebase + login com Google) ---- */
+/* ---------- Firebase sync ---------- */
 const fb = { app: null, auth: null, db: null, user: null };
-let syncState = 'off';   // off | connecting | on | error | localonly
-let syncMsg = '';
-let unsub = null;
-let pushTimer = null;
-
-function firebaseConfigured() {
-  return FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey &&
-         !FIREBASE_CONFIG.apiKey.startsWith('COLE_');
-}
-
+let syncState = 'off', syncMsg = '', unsub = null, pushTimer = null;
+function firebaseConfigured() { return FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith('COLE_'); }
 function setSyncState(s, msg) { syncState = s; syncMsg = msg || ''; renderSyncBar(); }
-
 function initFirebase() {
   renderSyncBar();
   if (!firebaseConfigured()) return;
-  if (!window.firebase || !firebase.initializeApp) {
-    setSyncState('error', 'Não foi possível carregar a sincronização (sem internet?).');
-    return;
-  }
-  try {
-    fb.app = firebase.initializeApp(FIREBASE_CONFIG);
-    fb.auth = firebase.auth();
-    fb.db = firebase.firestore();
-  } catch (e) {
-    setSyncState('error', 'Configuração do Firebase inválida.');
-    return;
-  }
+  if (!window.firebase || !firebase.initializeApp) { setSyncState('error', 'Sem conexão'); return; }
+  try { fb.app = firebase.initializeApp(FIREBASE_CONFIG); fb.auth = firebase.auth(); fb.db = firebase.firestore(); }
+  catch (e) { setSyncState('error', 'Config inválida'); return; }
   fb.auth.getRedirectResult().catch(() => {});
-  fb.auth.onAuthStateChanged(user => {
-    fb.user = user;
-    if (user) startSync(); else stopSync();
-    renderSyncBar();
-  });
+  fb.auth.onAuthStateChanged(u => { fb.user = u; if (u) startSync(); else stopSync(); renderSyncBar(); });
 }
-
 function signIn() {
   if (!fb.auth) return;
-  const provider = new firebase.auth.GoogleAuthProvider();
-  // Pop-up funciona melhor que redirecionamento no celular (Safari/iOS bloqueia
-  // o fluxo de redirect). Se o pop-up for bloqueado, cai para o redirect.
-  fb.auth.signInWithPopup(provider).catch(err => {
+  const p = new firebase.auth.GoogleAuthProvider();
+  fb.auth.signInWithPopup(p).catch(err => {
     if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
-    if (err.code === 'auth/popup-blocked' || err.code === 'auth/operation-not-supported-in-this-environment') {
-      fb.auth.signInWithRedirect(provider);
-    } else {
-      setSyncState('error', err.message);
-    }
+    if (err.code === 'auth/popup-blocked' || err.code === 'auth/operation-not-supported-in-this-environment') fb.auth.signInWithRedirect(p);
+    else setSyncState('error', err.message);
   });
 }
-
 function signOutUser() { if (fb.auth) fb.auth.signOut(); }
-
-function mergeById(primary, extra) {
-  const ids = new Set(primary.map(i => i.id));
-  const result = primary.slice();
-  for (const it of extra) if (!ids.has(it.id)) result.push(it);
-  return result;
-}
-
+function mergeById(primary, extra) { const ids = new Set(primary.map(i => i.id)); const r = primary.slice(); for (const it of extra) if (!ids.has(it.id)) r.push(it); return r; }
 async function startSync() {
   if (!fb.db || !fb.user) return;
   setSyncState('connecting');
@@ -658,108 +880,107 @@ async function startSync() {
   try {
     const snap = await ref.get();
     const remote = snap.exists ? (snap.data().items || []) : [];
-    const merged = mergeById(remote, items);   // não perde itens criados offline
-    if (JSON.stringify(merged) !== JSON.stringify(remote)) {
-      await ref.set({ items: merged, updatedAt: Date.now() });
-    }
+    const merged = mergeById(remote, items);
+    if (JSON.stringify(merged) !== JSON.stringify(remote)) await ref.set({ items: merged, updatedAt: Date.now() });
     items = merged; persistLocal(); render();
-  } catch (e) {
-    setSyncState('error', e.message);
-    return;
-  }
+  } catch (e) { setSyncState('error', e.message); return; }
   if (unsub) unsub();
-  unsub = ref.onSnapshot(snap => {
-    if (!snap.exists) return;
-    items = snap.data().items || [];
-    persistLocal(); render();
-    setSyncState('on');
-  }, err => setSyncState('error', err.message));
+  unsub = ref.onSnapshot(snap => { if (!snap.exists) return; items = snap.data().items || []; persistLocal(); render(); setSyncState('on'); }, err => setSyncState('error', err.message));
   setSyncState('on');
 }
-
-function stopSync() {
-  if (unsub) { unsub(); unsub = null; }
-  setSyncState('off');
-}
-
+function stopSync() { if (unsub) { unsub(); unsub = null; } setSyncState('off'); }
 function pushRemote() {
   if (!fb.db || !fb.user) return;
-  clearTimeout(pushTimer);
-  setSyncState('connecting');
-  pushTimer = setTimeout(() => {
-    fb.db.collection('agendas').doc(fb.user.uid)
-      .set({ items, updatedAt: Date.now() })
-      .then(() => setSyncState('on'))
-      .catch(err => setSyncState('error', err.message));
-  }, 400);
+  clearTimeout(pushTimer); setSyncState('connecting');
+  pushTimer = setTimeout(() => { fb.db.collection('agendas').doc(fb.user.uid).set({ items, updatedAt: Date.now() }).then(() => setSyncState('on')).catch(err => setSyncState('error', err.message)); }, 400);
 }
 
-const GOOGLE_G = '<svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.3 0 24 0 14.6 0 6.4 5.4 2.4 13.3l7.9 6.1C12.2 13.6 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16.5z"/><path fill="#FBBC05" d="M10.3 28.6c-.5-1.4-.7-2.9-.7-4.6s.3-3.2.7-4.6l-7.9-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.4 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.3-4.5 2.1-8.8 2.1-6.4 0-11.8-4.1-13.7-9.9l-7.9 6.1C6.4 42.6 14.6 48 24 48z"/></svg>';
-
+const GG = '<svg class="g-ic" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.3 0 24 0 14.6 0 6.4 5.4 2.4 13.3l7.9 6.1C12.2 13.6 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16.5z"/><path fill="#FBBC05" d="M10.3 28.6c-.5-1.4-.7-2.9-.7-4.6s.3-3.2.7-4.6l-7.9-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.4 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.3-4.5 2.1-8.8 2.1-6.4 0-11.8-4.1-13.7-9.9l-7.9 6.1C6.4 42.6 14.6 48 24 48z"/></svg>';
 function renderSyncBar() {
-  const el = document.getElementById('syncBar');
-  if (!el) return;
-
+  const bar = document.getElementById('syncBar');
+  const set = document.getElementById('setSync');
+  let inner;
   if (!firebaseConfigured()) {
-    el.innerHTML = `<span class="sync-dot off"></span>
-      <span>Sincronização não configurada — os dados ficam só neste aparelho.</span>
-      <span class="spacer"></span>
-      <a href="#" onclick="showSyncHelp();return false;">Como ativar</a>`;
-    return;
-  }
-  if (syncState === 'error') {
-    el.innerHTML = `<span class="sync-dot err"></span>
-      <span>Erro de sincronização${syncMsg ? ': ' + esc(syncMsg) : ''}</span>
-      <span class="spacer"></span>
-      ${fb.user ? `<button class="btn btn-ghost btn-sm" onclick="signOutUser()">Sair</button>`
-                : `<button class="btn btn-primary btn-sm g-btn" onclick="signIn()">${GOOGLE_G} Entrar com Google</button>`}`;
-    return;
-  }
-  if (fb.user) {
+    inner = `<span class="sdot off"></span><span>Sincronização não configurada</span><span class="spacer"></span>`;
+  } else if (syncState === 'error') {
+    inner = `<span class="sdot err"></span><span>Erro de sincronização</span><span class="spacer"></span>` +
+      (fb.user ? `<button class="mini-btn ghost" onclick="signOutUser()">Sair</button>` : `<button class="mini-btn" onclick="signIn()">${GG} Entrar</button>`);
+  } else if (fb.user) {
     const label = fb.user.displayName || fb.user.email || 'conta Google';
     const txt = syncState === 'connecting' ? 'Sincronizando…' : 'Sincronizado';
     const dot = syncState === 'connecting' ? 'wait' : 'on';
-    el.innerHTML = `<span class="sync-dot ${dot}"></span>
-      <span>${txt} · ${esc(label)}</span>
-      <span class="spacer"></span>
-      <button class="btn btn-ghost btn-sm" onclick="signOutUser()">Sair</button>`;
+    inner = `<span class="sdot ${dot}"></span><span>${txt} · ${esc(label)}</span><span class="spacer"></span><button class="mini-btn ghost" onclick="signOutUser()">Sair</button>`;
   } else {
-    el.innerHTML = `<span class="sync-dot off"></span>
-      <span>Entre para sincronizar entre seus aparelhos</span>
-      <span class="spacer"></span>
-      <button class="btn btn-primary btn-sm g-btn" onclick="signIn()">${GOOGLE_G} Entrar com Google</button>`;
+    inner = `<span class="sdot off"></span><span>Sincronize entre aparelhos</span><span class="spacer"></span><button class="mini-btn" onclick="signIn()">${GG} Entrar com Google</button>`;
   }
+  if (bar) bar.innerHTML = inner;
+  if (set) set.innerHTML = `<div style="display:flex;align-items:center;gap:10px;width:100%">${inner}</div>`;
 }
 
-function showSyncHelp() {
-  alert('Para sincronizar entre o celular e o computador:\n\n' +
-    '1. Crie um projeto grátis em console.firebase.google.com\n' +
-    '2. Ative Authentication → Sign-in method → Google\n' +
-    '3. Crie um banco Firestore Database\n' +
-    '4. Copie os dados do app web (apiKey, authDomain, projectId, appId)\n' +
-    '5. Cole no bloco FIREBASE_CONFIG dentro do arquivo index.html\n\n' +
-    'O passo a passo completo está no README do projeto.');
-}
+/* ---------- eventos ---------- */
+document.getElementById('segs').addEventListener('click', e => { const s = e.target.closest('.seg'); if (!s) return; currentView = s.dataset.view; render(); document.getElementById('list').scrollIntoView({ block: 'nearest' }); });
+document.getElementById('summary').addEventListener('click', e => { const c = e.target.closest('.sumcard'); if (!c) return; currentView = c.dataset.view; switchTab('list'); render(); });
+document.getElementById('search').addEventListener('input', () => { document.getElementById('sbWrap').classList.toggle('has-text', !!document.getElementById('search').value); render(); });
+document.getElementById('searchClear').addEventListener('click', () => { const i = document.getElementById('search'); i.value = ''; document.getElementById('sbWrap').classList.remove('has-text'); render(); });
 
-/* ---- eventos ---- */
-document.getElementById('tabs').addEventListener('click', ev => {
-  const tab = ev.target.closest('.tab');
-  if (!tab) return;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  tab.classList.add('active');
-  currentView = tab.dataset.view;
+// delegação para linhas (lista e calendário)
+document.body.addEventListener('click', e => {
+  const tog = e.target.closest('[data-toggle]'); if (tog) { toggleDone(tog.dataset.toggle); return; }
+  const op = e.target.closest('[data-open]'); if (op) { openItemSheet(op.dataset.open); return; }
+});
+
+// abas
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('viewList').hidden = tab !== 'list';
+  document.getElementById('viewCal').hidden = tab !== 'cal';
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   render();
-});
-document.getElementById('search').addEventListener('input', render);
-document.getElementById('filterType').addEventListener('change', render);
-document.getElementById('filterSubject').addEventListener('change', render);
-document.getElementById('modalOverlay').addEventListener('click', ev => {
-  if (ev.target === ev.currentTarget) closeModal();
-});
-document.addEventListener('keydown', ev => {
-  if (ev.key === 'Escape') closeModal();
-});
+}
+document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 
+// calendário nav
+document.getElementById('calPrev').addEventListener('click', () => { calCursor = new Date(calCursor.getFullYear(), calCursor.getMonth() - 1, 1); renderCalendar(); });
+document.getElementById('calNext').addEventListener('click', () => { calCursor = new Date(calCursor.getFullYear(), calCursor.getMonth() + 1, 1); renderCalendar(); });
+document.getElementById('calToday').addEventListener('click', () => { calCursor = new Date(); calSelected = todayStr(); renderCalendar(); });
+document.getElementById('calGrid').addEventListener('click', e => { const c = e.target.closest('.cal-cell'); if (!c) return; calSelected = c.dataset.date; haptic(); renderCalendar(); });
+
+// add + item sheet
+document.getElementById('addBtn').addEventListener('click', () => openItemSheet(null));
+document.getElementById('itemCancel').addEventListener('click', cancelItem);
+document.getElementById('itemBackdrop').addEventListener('click', cancelItem);
+document.getElementById('itemSave').addEventListener('click', saveItem);
+document.getElementById('itemDelete').addEventListener('click', deleteItem);
+document.getElementById('fTitle').addEventListener('input', validateSave);
+document.getElementById('fDate').addEventListener('input', validateSave);
+document.getElementById('fTypePick').addEventListener('click', e => { const b = e.target.closest('.type-opt'); if (!b) return; selectedType = b.dataset.type; renderTypePick(); });
+document.getElementById('attGrid').addEventListener('click', e => {
+  if (e.target.closest('#attAddBtn')) { document.getElementById('fFiles').click(); return; }
+  const rm = e.target.closest('[data-att-rm]'); if (rm) { e.stopPropagation(); removeAtt(+rm.dataset.attRm); return; }
+  const v = e.target.closest('[data-att-view]'); if (v) { viewAtt(+v.dataset.attView); }
+});
+document.getElementById('fFiles').addEventListener('change', e => { handleFiles(e.target.files); e.target.value = ''; });
+enableDrag('itemGrabber', 'itemSheet', 'itemBackdrop', cancelItem);
+
+// settings sheet
+document.getElementById('settingsBtn').addEventListener('click', () => { renderSyncBar(); showSheet('setSheet', 'setBackdrop'); });
+document.getElementById('setDone').addEventListener('click', () => closeSheet('setSheet', 'setBackdrop'));
+document.getElementById('setBackdrop').addEventListener('click', () => closeSheet('setSheet', 'setBackdrop'));
+document.getElementById('themeCtl').addEventListener('click', e => { const b = e.target.closest('button'); if (b) applyTheme(b.dataset.theme); });
+document.getElementById('btnExport').addEventListener('click', exportData);
+document.getElementById('btnImport').addEventListener('click', () => document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', importData);
+enableDrag('setGrabber', 'setSheet', 'setBackdrop', () => closeSheet('setSheet', 'setBackdrop'));
+
+// lightbox
+document.getElementById('lbClose').addEventListener('click', closeLightbox);
+document.getElementById('lightbox').addEventListener('click', e => { if (e.target.id === 'lightbox') closeLightbox(); });
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { cancelItem(); closeSheet('setSheet', 'setBackdrop'); closeLightbox(); } });
+
+/* ---------- init ---------- */
+let savedTheme = 'auto'; try { savedTheme = localStorage.getItem('agenda-theme') || 'auto'; } catch { }
+applyTheme(savedTheme);
 render();
 initFirebase();
 </script>
