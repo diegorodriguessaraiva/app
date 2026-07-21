@@ -13,7 +13,6 @@ Para acessar do celular, publique com o **GitHub Pages** (Settings → Pages →
 - 📱 **Interface no estilo iPhone (iOS)** — título grande, folhas deslizantes, abas na base e toques com resposta tátil
 - ➕ **Adicionar itens** com título, tipo, matéria, data, hora e anotações
 - 📎 **Anexos**: guarde **PDF, fotos e imagens** (JPEG/PNG/etc.) em cada item, com **visualizador embutido** (abre imagens e PDFs dentro do app, além de baixar ou abrir em nova aba)
-- ✨ **Gerador de exercícios com IA**: escreva um tema e escolha a **dificuldade**, a **quantidade** e o **formato** (múltipla escolha ou dissertativa); o app cria um quiz interativo, corrige na hora e mostra a explicação — dá para salvar direto na agenda
 - 🗓️ **Visão de calendário** mensal com bolinhas nos dias que têm itens e a lista do dia selecionado
 - 🏷️ **Tipos**: dever de casa, prova, trabalho, data importante e outros
 - 🔎 **Visualizações**: Próximos, Hoje, Semana, Atrasados, Concluídos e Todos
@@ -26,31 +25,6 @@ Para acessar do celular, publique com o **GitHub Pages** (Settings → Pages →
 - 🎨 **Tema**: Automático, Claro ou Escuro (nos Ajustes ⚙️)
 
 > **Sobre os anexos:** os arquivos ficam guardados **no próprio aparelho** (armazenamento local do navegador, que aguenta arquivos grandes). Os itens e as datas sincronizam pela nuvem; os arquivos em si não são enviados para a nuvem, então cada aparelho tem os seus.
-
-## ✨ Ativar o gerador de exercícios com IA
-
-A aba **Exercícios** usa uma IA para criar os exercícios. Como o app é um site estático (sem servidor próprio), ele chama a IA **direto do navegador** com a **sua própria chave de API**. Você escolhe o provedor nos **Ajustes ⚙️**:
-
-### Opção grátis — Google Gemini (recomendada) 🆓
-
-O Gemini tem uso gratuito de verdade, **sem precisar de cartão**:
-
-1. Acesse [aistudio.google.com](https://aistudio.google.com) e entre com sua conta Google.
-2. Clique em **Get API key** (ou "Obter chave de API") → **Create API key**.
-3. Copie a chave (começa com `AIza…`).
-4. No app: **Ajustes ⚙️** → em *Inteligência Artificial* deixe **Gemini (grátis)** selecionado → cole a chave → **Salvar chave**.
-5. Vá na aba **Exercícios**, escreva o tema e gere. 🎉
-
-> O nível gratuito do Gemini tem um limite de requisições por minuto/dia, mais que suficiente para estudar. Se aparecer "limite atingido", espere um pouco e tente de novo.
-
-### Opção paga — Anthropic (Claude)
-
-Qualidade excelente, mas exige créditos na conta:
-
-1. Crie a chave em [console.anthropic.com](https://console.anthropic.com) → *API Keys* (começa com `sk-ant-…`).
-2. No app: **Ajustes ⚙️** → troque o provedor para **Claude** → cole a chave → **Salvar chave**.
-
-> 🔒 **A chave fica guardada apenas no seu aparelho** (armazenamento local do navegador) e **nunca** é enviada para o GitHub nem para a nuvem da agenda — ela vai só para a API do provedor escolhido quando você gera exercícios. Não a use em computadores públicos/compartilhados.
 
 ## ☁️ Ativar a sincronização entre aparelhos (uma vez só)
 
