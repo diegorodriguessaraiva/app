@@ -287,6 +287,68 @@
   .toast { position: fixed; left: 50%; bottom: calc(100px + var(--safe-b)); transform: translateX(-50%) translateY(20px); background: rgba(30,30,30,.94); color: #fff; padding: 11px 18px; border-radius: 12px; font-size: .9rem; font-weight: 500; opacity: 0; pointer-events: none; transition: all .25s; z-index: 70; box-shadow: 0 6px 20px rgba(0,0,0,.3); max-width: 88%; text-align: center; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* ---- Attachment viewer (imagens + PDF) ---- */
+  .viewer { position: fixed; inset: 0; z-index: 60; background: #000; display: none; flex-direction: column; }
+  .viewer.show { display: flex; }
+  .viewer-bar {
+    display: flex; align-items: center; gap: 10px; padding: calc(10px + var(--safe-t)) 14px 10px;
+    background: rgba(20,20,22,.96); color: #fff; flex-shrink: 0;
+  }
+  .viewer-name { font-size: .9rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .viewer-actions { display: flex; gap: 4px; }
+  .viewer-actions button { width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(255,255,255,.14); color: #fff; font-size: 1rem; }
+  .viewer-actions button:active { background: rgba(255,255,255,.28); }
+  .viewer-body { flex: 1; display: flex; align-items: center; justify-content: center; overflow: auto; padding: 10px; }
+  .viewer-body img { max-width: 100%; max-height: 100%; border-radius: 8px; }
+  .viewer-body iframe { width: 100%; height: 100%; border: none; background: #fff; border-radius: 6px; }
+  .viewer-body .fallback { color: #fff; text-align: center; padding: 30px; }
+
+  /* ---- Exercícios (IA) ---- */
+  .ai-intro { text-align: center; padding: 8px 8px 18px; }
+  .ai-intro .ai-emoji { font-size: 2.6rem; }
+  .ai-intro h2 { font-size: 1.35rem; font-weight: 800; margin-top: 6px; letter-spacing: -.02em; }
+  .ai-intro p { color: var(--label2); font-size: .92rem; margin-top: 4px; max-width: 34ch; margin-left: auto; margin-right: auto; }
+  .seg-ctl.wide { display: flex; width: 100%; margin-left: 0; }
+  .seg-ctl.wide button { flex: 1; padding: 9px 4px; }
+  .btn-primary-full {
+    width: 100%; border: none; background: var(--blue); color: #fff; font-size: 1.05rem; font-weight: 700;
+    padding: 15px; border-radius: 14px; margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform .1s, opacity .15s;
+  }
+  .btn-primary-full:active { transform: scale(.98); }
+  .btn-primary-full:disabled { opacity: .5; }
+  .ai-status { text-align: center; font-size: .9rem; margin: 16px 4px; padding: 12px; border-radius: 12px; }
+  .ai-status.load { color: var(--label2); }
+  .ai-status.warn { background: var(--warn-soft); color: var(--warn); }
+  .ai-status.err { background: color-mix(in srgb, var(--red) 14%, transparent); color: var(--red); }
+  .ai-status .spin { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--label3); border-top-color: var(--blue); border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -3px; margin-right: 7px; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+
+  .quiz-head { display: flex; align-items: center; justify-content: space-between; margin: 18px 2px 12px; gap: 10px; flex-wrap: wrap; }
+  .quiz-head h3 { font-size: 1.1rem; font-weight: 800; }
+  .quiz-head .q-actions { display: flex; gap: 6px; }
+  .q-card { background: var(--group); border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .q-num { font-size: .72rem; font-weight: 800; color: var(--blue); text-transform: uppercase; letter-spacing: .05em; }
+  .q-text { font-size: 1.02rem; font-weight: 600; margin: 6px 0 12px; line-height: 1.4; }
+  .q-opts { display: flex; flex-direction: column; gap: 8px; }
+  .q-opt {
+    text-align: left; border: 1.5px solid var(--line); background: var(--card); color: var(--label);
+    border-radius: 11px; padding: 11px 13px; font-size: .96rem; display: flex; gap: 9px; align-items: flex-start;
+    transition: all .12s;
+  }
+  .q-opt:active { transform: scale(.99); }
+  .q-opt .letter { font-weight: 800; color: var(--label2); flex-shrink: 0; }
+  .q-opt.correct { border-color: var(--green); background: color-mix(in srgb, var(--green) 12%, transparent); }
+  .q-opt.correct .letter { color: var(--green); }
+  .q-opt.wrong { border-color: var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); }
+  .q-opt.wrong .letter { color: var(--red); }
+  .q-opt.locked { pointer-events: none; }
+  .q-reveal { margin-top: 12px; }
+  .q-answer { background: var(--fill); border-radius: 11px; padding: 12px 13px; font-size: .92rem; margin-top: 10px; }
+  .q-answer .lbl { font-weight: 700; color: var(--green); display: block; margin-bottom: 3px; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+  .q-answer .exp { color: var(--label2); margin-top: 8px; }
+  .link-btn { background: none; border: none; color: var(--blue); font-weight: 600; font-size: .9rem; padding: 4px 0; }
+
   @media (min-width: 641px) { .sheet, .tabbar { border-radius: 14px 14px 0 0; } }
 </style>
 </head>
@@ -296,6 +358,7 @@
     <div class="nav-row">
       <h1>Agenda</h1>
       <div class="nav-actions">
+        <button class="icon-round" id="addBtnTop" aria-label="Novo item" style="font-size:1.4rem;font-weight:300">+</button>
         <button class="icon-round" id="settingsBtn" aria-label="Ajustes">⚙️</button>
       </div>
     </div>
@@ -337,10 +400,52 @@
     <div class="cal-daylist" id="calDayList"></div>
   </main>
 
+  <main id="viewAI" hidden>
+    <div class="ai-intro">
+      <div class="ai-emoji">✨</div>
+      <h2>Gerador de exercícios</h2>
+      <p>Escreva um tema e a IA cria exercícios para você treinar.</p>
+    </div>
+    <div class="field">
+      <label>Tema</label>
+      <input type="text" class="inp" id="aiTheme" placeholder="Ex.: Revolução Francesa, equação do 2º grau…" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Matéria (opcional)</label>
+      <input type="text" class="inp" id="aiSubject" list="subjectList" placeholder="Ex.: História" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Dificuldade</label>
+      <div class="seg-ctl wide" id="aiDiff">
+        <button data-v="facil" class="on">Fácil</button>
+        <button data-v="medio">Médio</button>
+        <button data-v="dificil">Difícil</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Quantidade</label>
+      <div class="seg-ctl wide" id="aiQty">
+        <button data-v="3" class="on">3</button>
+        <button data-v="5">5</button>
+        <button data-v="10">10</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Formato</label>
+      <div class="seg-ctl wide" id="aiFormat">
+        <button data-v="multipla" class="on">Múltipla escolha</button>
+        <button data-v="dissertativa">Dissertativa</button>
+      </div>
+    </div>
+    <button class="btn-primary-full" id="aiGen">✨ Gerar exercícios</button>
+    <div id="aiStatus"></div>
+    <div id="aiResult"></div>
+  </main>
+
   <nav class="tabbar">
     <button class="tab-btn active" data-tab="list"><span class="ic">☰</span>Lista</button>
-    <button class="add-fab" id="addBtn" aria-label="Novo item">+</button>
     <button class="tab-btn" data-tab="cal"><span class="ic">📅</span>Calendário</button>
+    <button class="tab-btn" data-tab="ai"><span class="ic">✨</span>Exercícios</button>
   </nav>
 </div>
 
@@ -418,6 +523,14 @@
       </div>
     </div>
     <div class="field">
+      <label>Inteligência Artificial (Exercícios)</label>
+      <div class="set-group"><div class="set-row" style="display:block">
+        <input type="password" class="inp" id="aiKey" placeholder="Cole sua chave da API (sk-ant-...)" autocomplete="off" style="margin-bottom:8px">
+        <button class="mini-btn" id="aiKeySave" style="width:100%;justify-content:center">Salvar chave</button>
+      </div></div>
+      <p class="att-hint">Necessária só para a aba Exercícios. Fica guardada apenas neste aparelho e nunca é compartilhada. Crie a sua em <b>console.anthropic.com</b> → API Keys.</p>
+    </div>
+    <div class="field">
       <label>Backup</label>
       <div class="set-group">
         <button class="set-row" id="btnExport"><span class="ic">⬇️</span> Exportar agenda (JSON)<span class="val">›</span></button>
@@ -429,7 +542,17 @@
   </div>
 </div>
 
-<div class="lightbox" id="lightbox"><button class="close" id="lbClose">✕</button><img id="lbImg" alt=""></div>
+<div class="viewer" id="viewer">
+  <div class="viewer-bar">
+    <span class="viewer-name" id="viewerName"></span>
+    <div class="viewer-actions">
+      <button id="viewerOpen" aria-label="Abrir em nova aba" title="Abrir em nova aba">↗</button>
+      <button id="viewerDownload" aria-label="Baixar" title="Baixar">⬇</button>
+      <button id="viewerClose" aria-label="Fechar" title="Fechar">✕</button>
+    </div>
+  </div>
+  <div class="viewer-body" id="viewerBody"></div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
@@ -746,9 +869,7 @@ async function viewAtt(i) {
   const a = pendingAtts[i]; if (!a) return;
   const blob = await idbGet(a.id);
   if (!blob) { toast('Arquivo salvo em outro aparelho.'); return; }
-  const url = URL.createObjectURL(blob);
-  if ((a.type || '').startsWith('image/')) openLightbox(url);
-  else { const link = document.createElement('a'); link.href = url; link.target = '_blank'; link.rel = 'noopener'; document.body.appendChild(link); link.click(); link.remove(); }
+  openViewer(URL.createObjectURL(blob), a.type || '', a.name || 'arquivo');
 }
 
 function validateSave() {
@@ -808,9 +929,22 @@ function enableDrag(grabberId, sheetId, backId, onClose) {
   grab.addEventListener('mousedown', e => { down(e); const mm = ev => move(ev), mu = () => { up(); document.removeEventListener('mousemove', mm); document.removeEventListener('mouseup', mu); }; document.addEventListener('mousemove', mm); document.addEventListener('mouseup', mu); });
 }
 
-/* ---------- lightbox / toast ---------- */
-function openLightbox(url) { document.getElementById('lbImg').src = url; document.getElementById('lightbox').classList.add('show'); }
-function closeLightbox() { document.getElementById('lightbox').classList.remove('show'); document.getElementById('lbImg').src = ''; }
+/* ---------- visualizador de anexos / toast ---------- */
+let viewerUrl = null;
+function openViewer(url, type, name) {
+  viewerUrl = url;
+  document.getElementById('viewerName').textContent = name;
+  const body = document.getElementById('viewerBody');
+  if (type.startsWith('image/')) body.innerHTML = `<img src="${url}" alt="${esc(name)}">`;
+  else if (type === 'application/pdf') body.innerHTML = `<iframe src="${url}" title="${esc(name)}"></iframe>`;
+  else body.innerHTML = `<div class="fallback">Prévia não disponível.<br>Use ⬇ para baixar.</div>`;
+  document.getElementById('viewer').classList.add('show');
+}
+function closeViewer() {
+  document.getElementById('viewer').classList.remove('show');
+  document.getElementById('viewerBody').innerHTML = '';
+  if (viewerUrl) { URL.revokeObjectURL(viewerUrl); viewerUrl = null; }
+}
 let toastTimer = null;
 function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600); }
 
@@ -917,6 +1051,151 @@ function renderSyncBar() {
   if (set) set.innerHTML = `<div style="display:flex;align-items:center;gap:10px;width:100%">${inner}</div>`;
 }
 
+/* ---------- Exercícios com IA ---------- */
+const AI_KEY = 'agenda-ai-key';
+function getAIKey() { try { return localStorage.getItem(AI_KEY) || ''; } catch { return ''; } }
+function syncAISubject() { renderSubjectList(); }
+function segValue(id) { const b = document.querySelector('#' + id + ' button.on'); return b ? b.dataset.v : null; }
+function aiSetStatus(html, cls) {
+  const el = document.getElementById('aiStatus');
+  el.innerHTML = html ? `<div class="ai-status ${cls || ''}">${html}</div>` : '';
+}
+let currentQuiz = null, quizAnswered = {};
+
+async function generateExercises() {
+  const key = getAIKey();
+  if (!key) { aiSetStatus('⚙️ Configure sua chave de API nos Ajustes para gerar exercícios.', 'warn'); showSheet('setSheet', 'setBackdrop'); renderSyncBar(); return; }
+  const theme = document.getElementById('aiTheme').value.trim();
+  if (!theme) { aiSetStatus('Escreva um tema primeiro.', 'warn'); return; }
+  const subject = document.getElementById('aiSubject').value.trim();
+  const diff = segValue('aiDiff') || 'medio';
+  const qty = segValue('aiQty') || '5';
+  const format = segValue('aiFormat') || 'multipla';
+  const diffLabel = { facil: 'fácil', medio: 'médio', dificil: 'difícil' }[diff];
+
+  const btn = document.getElementById('aiGen');
+  btn.disabled = true;
+  document.getElementById('aiResult').innerHTML = '';
+  aiSetStatus('<span class="spin"></span>Gerando exercícios… pode levar alguns segundos.', 'load');
+
+  const isMC = format === 'multipla';
+  const prompt =
+    `Você é um professor brasileiro. Crie exatamente ${qty} exercícios de nível ${diffLabel} sobre o tema "${theme}"` +
+    (subject ? `, na matéria de ${subject}` : '') + `, em português do Brasil.\n` +
+    (isMC
+      ? `Cada questão é de MÚLTIPLA ESCOLHA com 4 alternativas plausíveis. Em "resposta", coloque o TEXTO EXATO da alternativa correta.`
+      : `Cada questão é DISSERTATIVA. Deixe "alternativas" como lista vazia e coloque em "resposta" uma resposta modelo completa.`) +
+    `\nEm "explicacao", explique de forma didática e curta por que a resposta está certa.`;
+
+  const schema = {
+    type: 'object', additionalProperties: false, required: ['questions'],
+    properties: {
+      questions: {
+        type: 'array', items: {
+          type: 'object', additionalProperties: false,
+          required: ['pergunta', 'tipo', 'alternativas', 'resposta', 'explicacao'],
+          properties: {
+            pergunta: { type: 'string' },
+            tipo: { type: 'string', enum: ['multipla', 'dissertativa'] },
+            alternativas: { type: 'array', items: { type: 'string' } },
+            resposta: { type: 'string' },
+            explicacao: { type: 'string' }
+          }
+        }
+      }
+    }
+  };
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-8',
+        max_tokens: 8000,
+        output_config: { format: { type: 'json_schema', schema } },
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!res.ok) {
+      let msg = 'Falha (' + res.status + ')';
+      try { const j = await res.json(); if (j.error && j.error.message) msg = j.error.message; } catch {}
+      if (res.status === 401) msg = 'Chave de API inválida. Confira nos Ajustes.';
+      else if (res.status === 429) msg = 'Muitas requisições. Aguarde um instante e tente de novo.';
+      else if (res.status >= 500) msg = 'Serviço da IA indisponível no momento. Tente novamente.';
+      throw new Error(msg);
+    }
+    const data = await res.json();
+    const tb = (data.content || []).find(b => b.type === 'text');
+    if (!tb) throw new Error('Resposta vazia da IA.');
+    const parsed = JSON.parse(tb.text);
+    if (!parsed.questions || !parsed.questions.length) throw new Error('Nenhum exercício gerado.');
+    currentQuiz = { theme, subject, diff: diffLabel, format, questions: parsed.questions };
+    aiSetStatus('');
+    renderQuiz();
+    haptic();
+  } catch (e) {
+    aiSetStatus('⚠ ' + esc(e.message || 'Erro ao gerar.'), 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function correctIndex(q) {
+  const r = (q.resposta || '').trim().toLowerCase();
+  let idx = (q.alternativas || []).findIndex(o => (o || '').trim().toLowerCase() === r);
+  if (idx < 0 && /^[a-e]$/.test(r)) idx = r.charCodeAt(0) - 97;
+  return idx;
+}
+
+function renderQuiz() {
+  quizAnswered = {};
+  const q = currentQuiz;
+  let html = `<div class="quiz-head"><h3>${esc(q.theme)}</h3>
+    <div class="q-actions">
+      <button class="mini-btn ghost" id="quizSave">Salvar na agenda</button>
+      <button class="mini-btn ghost" id="quizAgain">Novo</button>
+    </div></div>`;
+  q.questions.forEach((qq, i) => {
+    html += `<div class="q-card"><div class="q-num">Questão ${i + 1}</div><div class="q-text">${esc(qq.pergunta)}</div>`;
+    if (qq.tipo === 'multipla' && (qq.alternativas || []).length) {
+      html += '<div class="q-opts">' + qq.alternativas.map((o, oi) =>
+        `<button class="q-opt" data-qi="${i}" data-oi="${oi}"><span class="letter">${String.fromCharCode(65 + oi)}</span><span>${esc(o)}</span></button>`
+      ).join('') + '</div>';
+    } else {
+      html += `<button class="link-btn" data-reveal="${i}">Ver resposta modelo</button>`;
+    }
+    html += `<div class="q-reveal" id="reveal-${i}"></div></div>`;
+  });
+  document.getElementById('aiResult').innerHTML = html;
+}
+
+function revealAnswer(i, showLabel) {
+  const q = currentQuiz.questions[i];
+  const el = document.getElementById('reveal-' + i);
+  el.innerHTML = `<div class="q-answer">
+    <span class="lbl">${q.tipo === 'multipla' ? 'Resposta correta' : 'Resposta modelo'}</span>
+    ${esc(q.resposta)}
+    ${q.explicacao ? `<div class="exp">${esc(q.explicacao)}</div>` : ''}
+  </div>`;
+}
+
+function quizToNotes() {
+  return currentQuiz.questions.map((q, i) => {
+    let s = `${i + 1}) ${q.pergunta}`;
+    if (q.tipo === 'multipla' && q.alternativas.length)
+      s += '\n' + q.alternativas.map((o, oi) => `   ${String.fromCharCode(97 + oi)}) ${o}`).join('\n');
+    s += `\n   ✔ ${q.resposta}`;
+    if (q.explicacao) s += `\n   → ${q.explicacao}`;
+    return s;
+  }).join('\n\n');
+}
+
 /* ---------- eventos ---------- */
 document.getElementById('segs').addEventListener('click', e => { const s = e.target.closest('.seg'); if (!s) return; currentView = s.dataset.view; render(); document.getElementById('list').scrollIntoView({ block: 'nearest' }); });
 document.getElementById('summary').addEventListener('click', e => { const c = e.target.closest('.sumcard'); if (!c) return; currentView = c.dataset.view; switchTab('list'); render(); });
@@ -934,7 +1213,12 @@ function switchTab(tab) {
   currentTab = tab;
   document.getElementById('viewList').hidden = tab !== 'list';
   document.getElementById('viewCal').hidden = tab !== 'cal';
+  document.getElementById('viewAI').hidden = tab !== 'ai';
+  const listOnly = tab === 'list';
+  document.querySelector('.searchbar').style.display = listOnly ? '' : 'none';
+  document.getElementById('segs').style.display = listOnly ? '' : 'none';
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  if (tab === 'ai') syncAISubject();
   render();
 }
 document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
@@ -946,7 +1230,7 @@ document.getElementById('calToday').addEventListener('click', () => { calCursor 
 document.getElementById('calGrid').addEventListener('click', e => { const c = e.target.closest('.cal-cell'); if (!c) return; calSelected = c.dataset.date; haptic(); renderCalendar(); });
 
 // add + item sheet
-document.getElementById('addBtn').addEventListener('click', () => openItemSheet(null));
+document.getElementById('addBtnTop').addEventListener('click', () => openItemSheet(null));
 document.getElementById('itemCancel').addEventListener('click', cancelItem);
 document.getElementById('itemBackdrop').addEventListener('click', cancelItem);
 document.getElementById('itemSave').addEventListener('click', saveItem);
@@ -962,8 +1246,54 @@ document.getElementById('attGrid').addEventListener('click', e => {
 document.getElementById('fFiles').addEventListener('change', e => { handleFiles(e.target.files); e.target.value = ''; });
 enableDrag('itemGrabber', 'itemSheet', 'itemBackdrop', cancelItem);
 
+// Exercícios (IA)
+['aiDiff', 'aiQty', 'aiFormat'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    document.querySelectorAll('#' + id + ' button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+  });
+});
+document.getElementById('aiGen').addEventListener('click', generateExercises);
+document.getElementById('aiResult').addEventListener('click', e => {
+  const opt = e.target.closest('.q-opt');
+  if (opt) {
+    const qi = +opt.dataset.qi;
+    if (quizAnswered[qi]) return;
+    quizAnswered[qi] = true;
+    const oi = +opt.dataset.oi;
+    const q = currentQuiz.questions[qi];
+    const ci = correctIndex(q);
+    document.querySelectorAll(`.q-opt[data-qi="${qi}"]`).forEach(b => {
+      b.classList.add('locked');
+      if (+b.dataset.oi === ci) b.classList.add('correct');
+    });
+    if (oi !== ci) opt.classList.add('wrong');
+    revealAnswer(qi);
+    return;
+  }
+  const rev = e.target.closest('[data-reveal]');
+  if (rev) { revealAnswer(+rev.dataset.reveal); rev.style.display = 'none'; return; }
+  if (e.target.id === 'quizAgain') { currentQuiz = null; document.getElementById('aiResult').innerHTML = ''; document.getElementById('aiTheme').focus(); return; }
+  if (e.target.id === 'quizSave') {
+    items.push({ id: uid(), done: false, createdAt: new Date().toISOString(),
+      title: 'Estudar: ' + currentQuiz.theme, type: 'dever', subject: currentQuiz.subject || '',
+      date: todayStr(), time: '', notes: quizToNotes(), attachments: [] });
+    persist(); toast('Salvo na agenda ✓'); switchTab('list');
+  }
+});
+
 // settings sheet
-document.getElementById('settingsBtn').addEventListener('click', () => { renderSyncBar(); showSheet('setSheet', 'setBackdrop'); });
+document.getElementById('settingsBtn').addEventListener('click', () => {
+  renderSyncBar();
+  document.getElementById('aiKey').value = getAIKey();
+  showSheet('setSheet', 'setBackdrop');
+});
+document.getElementById('aiKeySave').addEventListener('click', () => {
+  const v = document.getElementById('aiKey').value.trim();
+  try { if (v) localStorage.setItem(AI_KEY, v); else localStorage.removeItem(AI_KEY); } catch {}
+  toast(v ? 'Chave salva ✓' : 'Chave removida');
+});
 document.getElementById('setDone').addEventListener('click', () => closeSheet('setSheet', 'setBackdrop'));
 document.getElementById('setBackdrop').addEventListener('click', () => closeSheet('setSheet', 'setBackdrop'));
 document.getElementById('themeCtl').addEventListener('click', e => { const b = e.target.closest('button'); if (b) applyTheme(b.dataset.theme); });
@@ -972,11 +1302,17 @@ document.getElementById('btnImport').addEventListener('click', () => document.ge
 document.getElementById('importFile').addEventListener('change', importData);
 enableDrag('setGrabber', 'setSheet', 'setBackdrop', () => closeSheet('setSheet', 'setBackdrop'));
 
-// lightbox
-document.getElementById('lbClose').addEventListener('click', closeLightbox);
-document.getElementById('lightbox').addEventListener('click', e => { if (e.target.id === 'lightbox') closeLightbox(); });
+// visualizador de anexos
+document.getElementById('viewerClose').addEventListener('click', closeViewer);
+document.getElementById('viewerOpen').addEventListener('click', () => { if (viewerUrl) window.open(viewerUrl, '_blank'); });
+document.getElementById('viewerDownload').addEventListener('click', () => {
+  if (!viewerUrl) return;
+  const a = document.createElement('a'); a.href = viewerUrl;
+  a.download = document.getElementById('viewerName').textContent || 'arquivo';
+  document.body.appendChild(a); a.click(); a.remove();
+});
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { cancelItem(); closeSheet('setSheet', 'setBackdrop'); closeLightbox(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { cancelItem(); closeSheet('setSheet', 'setBackdrop'); closeViewer(); } });
 
 /* ---------- init ---------- */
 let savedTheme = 'auto'; try { savedTheme = localStorage.getItem('agenda-theme') || 'auto'; } catch { }

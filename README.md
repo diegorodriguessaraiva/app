@@ -12,7 +12,8 @@ Para acessar do celular, publique com o **GitHub Pages** (Settings → Pages →
 
 - 📱 **Interface no estilo iPhone (iOS)** — título grande, folhas deslizantes, abas na base e toques com resposta tátil
 - ➕ **Adicionar itens** com título, tipo, matéria, data, hora e anotações
-- 📎 **Anexos**: guarde **PDF, fotos e imagens** (JPEG/PNG/etc.) em cada item — imagens abrem em tela cheia, PDFs abrem numa nova aba
+- 📎 **Anexos**: guarde **PDF, fotos e imagens** (JPEG/PNG/etc.) em cada item, com **visualizador embutido** (abre imagens e PDFs dentro do app, além de baixar ou abrir em nova aba)
+- ✨ **Gerador de exercícios com IA**: escreva um tema e escolha a **dificuldade**, a **quantidade** e o **formato** (múltipla escolha ou dissertativa); o app cria um quiz interativo, corrige na hora e mostra a explicação — dá para salvar direto na agenda
 - 🗓️ **Visão de calendário** mensal com bolinhas nos dias que têm itens e a lista do dia selecionado
 - 🏷️ **Tipos**: dever de casa, prova, trabalho, data importante e outros
 - 🔎 **Visualizações**: Próximos, Hoje, Semana, Atrasados, Concluídos e Todos
@@ -25,6 +26,16 @@ Para acessar do celular, publique com o **GitHub Pages** (Settings → Pages →
 - 🎨 **Tema**: Automático, Claro ou Escuro (nos Ajustes ⚙️)
 
 > **Sobre os anexos:** os arquivos ficam guardados **no próprio aparelho** (armazenamento local do navegador, que aguenta arquivos grandes). Os itens e as datas sincronizam pela nuvem; os arquivos em si não são enviados para a nuvem, então cada aparelho tem os seus.
+
+## ✨ Ativar o gerador de exercícios com IA
+
+A aba **Exercícios** usa a IA da Anthropic (Claude) para criar os exercícios. Como o app é um site estático (sem servidor próprio), ele chama a IA **direto do navegador** usando a **sua própria chave de API**:
+
+1. Crie uma conta em [console.anthropic.com](https://console.anthropic.com) e gere uma **API Key** (em *API Keys*). É necessário ter créditos/faturamento configurado na conta.
+2. No app, abra os **Ajustes ⚙️**, cole a chave no campo **Inteligência Artificial** e toque em **Salvar chave**.
+3. Pronto — vá na aba **Exercícios**, escreva o tema e gere.
+
+> 🔒 **A chave fica guardada apenas no seu aparelho** (armazenamento local do navegador) e **nunca** é enviada para o GitHub nem para a nuvem da agenda — ela vai só para a API da Anthropic quando você gera exercícios. Não a use em computadores públicos/compartilhados. Cada geração de exercícios consome um pouco dos créditos da sua conta Anthropic.
 
 ## ☁️ Ativar a sincronização entre aparelhos (uma vez só)
 
