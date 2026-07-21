@@ -29,13 +29,28 @@ Para acessar do celular, publique com o **GitHub Pages** (Settings → Pages →
 
 ## ✨ Ativar o gerador de exercícios com IA
 
-A aba **Exercícios** usa a IA da Anthropic (Claude) para criar os exercícios. Como o app é um site estático (sem servidor próprio), ele chama a IA **direto do navegador** usando a **sua própria chave de API**:
+A aba **Exercícios** usa uma IA para criar os exercícios. Como o app é um site estático (sem servidor próprio), ele chama a IA **direto do navegador** com a **sua própria chave de API**. Você escolhe o provedor nos **Ajustes ⚙️**:
 
-1. Crie uma conta em [console.anthropic.com](https://console.anthropic.com) e gere uma **API Key** (em *API Keys*). É necessário ter créditos/faturamento configurado na conta.
-2. No app, abra os **Ajustes ⚙️**, cole a chave no campo **Inteligência Artificial** e toque em **Salvar chave**.
-3. Pronto — vá na aba **Exercícios**, escreva o tema e gere.
+### Opção grátis — Google Gemini (recomendada) 🆓
 
-> 🔒 **A chave fica guardada apenas no seu aparelho** (armazenamento local do navegador) e **nunca** é enviada para o GitHub nem para a nuvem da agenda — ela vai só para a API da Anthropic quando você gera exercícios. Não a use em computadores públicos/compartilhados. Cada geração de exercícios consome um pouco dos créditos da sua conta Anthropic.
+O Gemini tem uso gratuito de verdade, **sem precisar de cartão**:
+
+1. Acesse [aistudio.google.com](https://aistudio.google.com) e entre com sua conta Google.
+2. Clique em **Get API key** (ou "Obter chave de API") → **Create API key**.
+3. Copie a chave (começa com `AIza…`).
+4. No app: **Ajustes ⚙️** → em *Inteligência Artificial* deixe **Gemini (grátis)** selecionado → cole a chave → **Salvar chave**.
+5. Vá na aba **Exercícios**, escreva o tema e gere. 🎉
+
+> O nível gratuito do Gemini tem um limite de requisições por minuto/dia, mais que suficiente para estudar. Se aparecer "limite atingido", espere um pouco e tente de novo.
+
+### Opção paga — Anthropic (Claude)
+
+Qualidade excelente, mas exige créditos na conta:
+
+1. Crie a chave em [console.anthropic.com](https://console.anthropic.com) → *API Keys* (começa com `sk-ant-…`).
+2. No app: **Ajustes ⚙️** → troque o provedor para **Claude** → cole a chave → **Salvar chave**.
+
+> 🔒 **A chave fica guardada apenas no seu aparelho** (armazenamento local do navegador) e **nunca** é enviada para o GitHub nem para a nuvem da agenda — ela vai só para a API do provedor escolhido quando você gera exercícios. Não a use em computadores públicos/compartilhados.
 
 ## ☁️ Ativar a sincronização entre aparelhos (uma vez só)
 
