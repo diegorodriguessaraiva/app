@@ -320,7 +320,11 @@
   .day-block { margin-bottom: 18px; }
   .day-block .dh { font-size: .82rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--label2); margin: 0 4px 8px; }
   .day-block .dh.today { color: var(--blue); }
-  .cls-card { display: flex; gap: 12px; background: var(--group); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,.04); align-items: center; }
+  .cls-card { display: flex; gap: 12px; background: var(--group); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,.04); align-items: center; transition: transform .1s; }
+  .cls-card.tap { cursor: pointer; }
+  .cls-card.tap:active { transform: scale(.98); }
+  .cls-go { margin-left: auto; flex-shrink: 0; align-self: center; font-size: 1.15rem; opacity: .9; }
+  .grade-hint { font-size: .8rem; color: var(--label2); margin: -4px 4px 16px; }
   .cls-stripe { width: 5px; align-self: stretch; border-radius: 3px; flex-shrink: 0; }
   .cls-time { font-variant-numeric: tabular-nums; font-weight: 700; font-size: .9rem; width: 62px; flex-shrink: 0; line-height: 1.35; }
   .cls-time .to { color: var(--label2); font-weight: 500; font-size: .8rem; }
@@ -388,6 +392,7 @@
       </div>
       <div class="seg-ctl" id="termSel"></div>
     </div>
+    <p class="grade-hint">📍 Toque numa aula para traçar a rota a pé no Google Maps.</p>
     <div id="gradeGrid"></div>
   </main>
 
@@ -591,6 +596,31 @@ function classColor(code) {
   return CLASS_COLORS[codes.indexOf(code) % CLASS_COLORS.length];
 }
 let currentTerm = TERMS[0].key;
+
+/* Prédios da UofT St. George (código da sala → local para o Google Maps) */
+const BUILDINGS = {
+  MP: 'McLennan Physical Laboratories, University of Toronto',
+  BA: 'Bahen Centre for Information Technology, University of Toronto',
+  MB: 'Lassonde Mining Building, University of Toronto',
+  MY: 'Myhal Centre for Engineering Innovation, University of Toronto',
+  CH: 'Convocation Hall, University of Toronto',
+  ES: 'Earth Sciences Centre, University of Toronto',
+  SS: 'Sidney Smith Hall, University of Toronto',
+  HS: 'Health Sciences Building, University of Toronto',
+  OI: 'OISE, University of Toronto',
+  UC: 'University College, University of Toronto',
+  EM: 'Emmanuel College, University of Toronto'
+};
+function buildingDest(room) {
+  const code = (room || '').trim().split(/\s+/)[0].toUpperCase();
+  if (!code || code === 'ONLINE') return null;
+  return BUILDINGS[code] || (code + ' building, University of Toronto, Toronto');
+}
+function mapsUrl(room) {
+  const dest = buildingDest(room);
+  if (!dest) return null;
+  return 'https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=' + encodeURIComponent(dest);
+}
 
 let items = load();
 let currentView = 'proximos';
@@ -839,11 +869,17 @@ function renderGrade() {
     if (!cls.length) continue;
     const isToday = day === todayDow;
     html += `<div class="day-block"><div class="dh ${isToday ? 'today' : ''}">${WEEKDAYS[day]}${isToday ? ' · hoje' : ''}</div>`;
-    html += cls.map(c => `<div class="cls-card">
-      <div class="cls-stripe" style="background:${classColor(c.code)}"></div>
-      <div class="cls-time">${fmtHour(c.s)}<div class="to">${fmtHour(c.e)}</div></div>
-      <div class="cls-main"><div class="cls-code">${c.code}</div><div class="cls-meta">${c.kind} · ${esc(c.room)}</div></div>
-    </div>`).join('');
+    html += cls.map(c => {
+      const online = !buildingDest(c.room);
+      const go = online ? '<span class="cls-go" title="Aula online">💻</span>'
+                        : '<span class="cls-go" title="Como chegar">📍</span>';
+      return `<div class="cls-card ${online ? '' : 'tap'}" data-room="${esc(c.room)}">
+        <div class="cls-stripe" style="background:${classColor(c.code)}"></div>
+        <div class="cls-time">${fmtHour(c.s)}<div class="to">${fmtHour(c.e)}</div></div>
+        <div class="cls-main"><div class="cls-code">${c.code}</div><div class="cls-meta">${c.kind} · ${esc(c.room)}</div></div>
+        ${go}
+      </div>`;
+    }).join('');
     html += '</div>';
   }
   document.getElementById('gradeGrid').innerHTML = html || '<div class="grade-empty">Sem aulas cadastradas neste período.</div>';
@@ -1289,6 +1325,11 @@ enableDrag('itemGrabber', 'itemSheet', 'itemBackdrop', cancelItem);
 
 // grade de horários
 document.getElementById('termSel').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; currentTerm = b.dataset.term; renderGrade(); });
+document.getElementById('gradeGrid').addEventListener('click', e => {
+  const card = e.target.closest('.cls-card.tap'); if (!card) return;
+  const url = mapsUrl(card.dataset.room);
+  if (url) { haptic(); window.open(url, '_blank'); }
+});
 
 // settings sheet
 document.getElementById('settingsBtn').addEventListener('click', () => {

@@ -15,7 +15,7 @@ Para acessar do celular, publique com o **GitHub Pages** (Settings → Pages →
 - 📎 **Anexos**: guarde **PDF, fotos e imagens** (JPEG/PNG/etc.) em cada item, com **visualizador embutido** (abre imagens e PDFs dentro do app, além de baixar ou abrir em nova aba)
 - 🔁 **Itens recorrentes**: diário, semanal, quinzenal ou mensal — ao concluir, a próxima ocorrência é criada sozinha
 - 🔔 **Lembretes/notificações**: escolha em cada item (no horário, 10/30 min, 1 h ou 1 dia antes)
-- 📚 **Grade de horários** das aulas (Outono e Inverno), dia a dia, com cor por matéria e destaque do dia atual
+- 📚 **Grade de horários** das aulas (Outono e Inverno), dia a dia, com cor por matéria e destaque do dia atual — **toque numa aula para abrir a rota a pé no Google Maps** até o prédio (UofT St. George)
 - 👆 **Deslizar** um item: arraste para a **direita para concluir** ✓ ou para a **esquerda para excluir** 🗑️ (gesto estilo iOS)
 - 🗓️ **Visão de calendário** mensal com bolinhas nos dias que têm itens e a lista do dia selecionado
 - 🏷️ **Tipos**: dever de casa, prova, trabalho, data importante e outros
