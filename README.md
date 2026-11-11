@@ -15,7 +15,7 @@ Para acessar do celular, publique com o **GitHub Pages** (Settings → Pages →
 - 📎 **Anexos**: guarde **PDF, fotos e imagens** (JPEG/PNG/etc.) em cada item, com **visualizador embutido** (abre imagens e PDFs dentro do app, além de baixar ou abrir em nova aba)
 - 🔁 **Itens recorrentes**: diário, semanal, quinzenal ou mensal — ao concluir, a próxima ocorrência é criada sozinha
 - 🔔 **Lembretes/notificações**: escolha em cada item (no horário, 10/30 min, 1 h ou 1 dia antes)
-- 📚 **Grade de horários** das aulas (Outono e Inverno), dia a dia, com cor por matéria e destaque do dia atual — **toque numa aula para abrir a rota a pé no Google Maps** até o prédio (UofT St. George)
+- 📚 **Grade de horários** por usuário: cada conta tem a sua, editável no app (**Editar** → adicionar/editar/excluir aulas e ajustar o período), dia a dia, com cor por matéria e destaque do dia; **toque numa aula para abrir a rota a pé no Google Maps** até o prédio. Sincroniza na nuvem junto com a agenda quando você entra com o Google.
 - 👆 **Deslizar** um item: arraste para a **direita para concluir** ✓ ou para a **esquerda para excluir** 🗑️ (gesto estilo iOS)
 - 🗓️ **Visão de calendário** mensal com bolinhas nos dias que têm itens e a lista do dia selecionado
 - 🏷️ **Tipos**: dever de casa, prova, trabalho, data importante e outros
@@ -32,7 +32,7 @@ Para acessar do celular, publique com o **GitHub Pages** (Settings → Pages →
 
 > **Sobre as notificações:** ative em **Ajustes ⚙️ → Lembretes** e permita as notificações no navegador. Elas disparam de forma confiável enquanto o app está aberto; ao abrir o app, ele também avisa o que passou. Para os lembretes funcionarem melhor no celular, **instale o app na tela de início** (o app já vem com ícone e manifesto para isso). Aviso em segundo plano com o app totalmente fechado depende do sistema e nem sempre é garantido em sites estáticos.
 
-> **Sobre a grade de horários:** as aulas de Outono 2026 e Inverno 2027 já vêm cadastradas no código (no bloco `TERMS` do `index.html`). Para mudar de semestre no futuro, edite esse bloco.
+> **Sobre a grade de horários:** cada conta Google tem a sua própria grade. Edite pela aba **Horários → Editar** (adicione suas aulas de Outono e Inverno, com dia, horário e sala). Ela é guardada no aparelho e **sincronizada na nuvem** quando você entra com o Google, então cada conta vê as suas aulas e as rotas no Maps correspondentes. A grade de exemplo (Outono 2026 / Inverno 2027) já vem preenchida para começar — é só editar.
 
 ## ☁️ Ativar a sincronização entre aparelhos (uma vez só)
 
