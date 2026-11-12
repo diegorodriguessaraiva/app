@@ -505,7 +505,7 @@
     <div class="field">
       <label>Google Agenda</label>
       <div class="set-group">
-        <button class="set-row" id="gcalToggleRow"><span class="ic">📆</span> Importar ao entrar<span class="val" id="gcalToggle">Ligado</span></button>
+        <button class="set-row" id="gcalToggleRow"><span class="ic">📆</span> Importar do Google Agenda<span class="val" id="gcalToggle">Desligado</span></button>
         <button class="set-row" id="gcalNow"><span class="ic">🔄</span> Sincronizar<span class="val" id="gcalState">agora ›</span></button>
       </div>
       <p class="att-hint" id="gcalHint"></p>
@@ -1391,7 +1391,11 @@ function signIn() {
   const withCal = gcalCfg().enabled && !gcalSkipOnce;
   const p = googleProvider(withCal);
   fb.auth.signInWithPopup(p).then(handleGcalCredential).catch(err => {
-    if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
+    if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+      // fechou a janela na tela de permissão/aviso da agenda → a próxima tentativa é o login simples
+      if (withCal) { gcalSkipOnce = true; toast('Toque em Entrar de novo para entrar sem o Google Agenda.'); }
+      return;
+    }
     if (err.code === 'auth/popup-blocked' || err.code === 'auth/operation-not-supported-in-this-environment') fb.auth.signInWithRedirect(p);
     else if (withCal) { gcalSkipOnce = true; toast('Não deu para entrar com acesso ao Google Agenda. Toque em Entrar de novo para entrar sem a agenda.'); }
     else setSyncState('error', err.message);
@@ -1439,10 +1443,11 @@ function pushRemote() {
 
 /* ---------- Google Agenda ---------- */
 const GCAL_SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
-const GCAL_CFG_KEY = 'agenda-gcal', GCAL_TOKEN_KEY = 'agenda-gcal-token', GCAL_DISMISS_KEY = 'agenda-gcal-dismissed';
+const GCAL_CFG_KEY = 'agenda-gcal-v2', GCAL_TOKEN_KEY = 'agenda-gcal-token', GCAL_DISMISS_KEY = 'agenda-gcal-dismissed';
 const GCAL_DAYS_AHEAD = 120;
 let gcalBusy = false;
-function gcalCfg() { try { return Object.assign({ enabled: true }, JSON.parse(localStorage.getItem(GCAL_CFG_KEY) || '{}')); } catch { return { enabled: true }; } }
+// Opcional e desligado por padrão: o login normal não pede acesso à agenda (sem aviso do Google)
+function gcalCfg() { try { return Object.assign({ enabled: false }, JSON.parse(localStorage.getItem(GCAL_CFG_KEY) || '{}')); } catch { return { enabled: false }; } }
 function gcalSaveCfg(patch) { try { localStorage.setItem(GCAL_CFG_KEY, JSON.stringify(Object.assign(gcalCfg(), patch))); } catch {} }
 function gcalToken() {
   try { const t = JSON.parse(sessionStorage.getItem(GCAL_TOKEN_KEY) || 'null'); return t && t.exp > Date.now() ? t.token : null; } catch { return null; }
@@ -1493,6 +1498,7 @@ function handleGcalCredential(res) {
 // Botão "Sincronizar agora": usa o token em cache ou pede permissão de novo
 function gcalSyncNow() {
   if (!gcalCfg().enabled) gcalSaveCfg({ enabled: true });
+  gcalSkipOnce = false;
   updateGcalUI();
   const token = gcalToken();
   if (token) { gcalSync(token); return; }
@@ -1675,7 +1681,7 @@ function updateGcalUI() {
   const cfg = gcalCfg();
   tg.textContent = cfg.enabled ? 'Ligado' : 'Desligado';
   st.textContent = gcalBusy ? 'sincronizando…' : 'agora ›';
-  let h = 'Ao entrar com o Google, seus compromissos vão para a Lista e o Calendário, e as aulas semanais para os Horários (provas, trabalhos e deveres são identificados pelo título).';
+  let h = 'Opcional. Ao ligar, seus compromissos do Google vão para a Lista e o Calendário, e as aulas semanais para os Horários. O Google mostra um aviso de “app não verificado”: toque em Avançado → Acessar.';
   if (cfg.error) h = '⚠ ' + cfg.error;
   else if (cfg.last) h = 'Última sincronização: ' + new Date(cfg.last).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) +
     ` — ${cfg.nItems || 0} compromisso(s) e ${cfg.nClasses || 0} aula(s). Apenas leitura: nada é alterado no seu Google Agenda.`;
