@@ -503,6 +503,14 @@
       <p class="att-hint" id="notifHint">Avisa antes dos prazos. Escolha o lembrete em cada item. Funciona melhor com o app instalado na tela de início.</p>
     </div>
     <div class="field">
+      <label>Google Agenda</label>
+      <div class="set-group">
+        <button class="set-row" id="gcalToggleRow"><span class="ic">📆</span> Importar ao entrar<span class="val" id="gcalToggle">Ligado</span></button>
+        <button class="set-row" id="gcalNow"><span class="ic">🔄</span> Sincronizar<span class="val" id="gcalState">agora ›</span></button>
+      </div>
+      <p class="att-hint" id="gcalHint"></p>
+    </div>
+    <div class="field">
       <label>Aparência</label>
       <div class="set-group">
         <div class="set-row"><span class="ic">🎨</span> Tema
@@ -647,10 +655,12 @@ function normalizeTerms(data) {
   const byKey = {}; data.forEach(t => { if (t && t.key) byKey[t.key] = t; });
   return DEFAULT_TERMS.map(def => {
     const t = byKey[def.key] || {};
-    const classes = Array.isArray(t.classes) ? t.classes.filter(c => c && c.day && c.s && c.e && c.code).map(c => ({
-      id: c.id || newClassId(), day: +c.day, s: String(c.s), e: String(c.e),
-      code: String(c.code), kind: c.kind ? String(c.kind) : '', room: c.room ? String(c.room) : ''
-    })) : [];
+    const classes = Array.isArray(t.classes) ? t.classes.filter(c => c && c.day && c.s && c.e && c.code).map(c => {
+      const o = { id: c.id || newClassId(), day: +c.day, s: String(c.s), e: String(c.e),
+        code: String(c.code), kind: c.kind ? String(c.kind) : '', room: c.room ? String(c.room) : '' };
+      if (c.gcalId) o.gcalId = String(c.gcalId);   // aula vinda do Google Agenda
+      return o;
+    }) : [];
     return { key: def.key, name: t.name || def.name, start: t.start || def.start, end: t.end || def.end, classes };
   });
 }
@@ -684,9 +694,13 @@ const BUILDINGS = {
   EM: 'Emmanuel College, University of Toronto'
 };
 function buildingDest(room) {
-  const code = (room || '').trim().split(/\s+/)[0].toUpperCase();
-  if (!code || code === 'ONLINE') return null;
-  return BUILDINGS[code] || (code + ' building, University of Toronto, Toronto');
+  const text = (room || '').trim();
+  const code = text.split(/\s+/)[0].toUpperCase();
+  if (!code || /^online\b/i.test(text) || /^https?:/i.test(text)) return null;
+  if (BUILDINGS[code]) return BUILDINGS[code];
+  // "XX 123" → código de prédio desconhecido; qualquer outra coisa (endereço, nome do lugar) vai como está
+  if (/^[A-Za-z]{2,3}(\s+[\w-]+)?$/.test(text)) return code + ' building, University of Toronto, Toronto';
+  return text;
 }
 function mapsUrl(room) {
   const dest = buildingDest(room);
@@ -824,6 +838,7 @@ function rowHtml(it) {
   const t = TYPE_MAP[it.type] || TYPE_MAP.outro;
   const rep = (it.repeat && it.repeat !== 'none') ? '<span class="chip">🔁</span>' : '';
   const rem = (it.remind && it.remind !== 'none') ? '<span class="chip">🔔</span>' : '';
+  const gcl = it.gcalId ? '<span class="chip" title="Google Agenda">📆</span>' : '';
   return `<div class="swipe">
     <div class="swipe-act done">✓ Concluir</div>
     <div class="swipe-act del">Excluir 🗑️</div>
@@ -835,7 +850,7 @@ function rowHtml(it) {
           <span class="chip type" style="background:${t.color}">${t.icon} ${t.label}</span>
           ${it.subject ? `<span class="chip">${esc(it.subject)}</span>` : ''}
           ${it.time ? `<span class="chip">🕐 ${it.time}</span>` : ''}
-          ${dueChip(it)}${attMini(it)}${rep}${rem}
+          ${dueChip(it)}${attMini(it)}${rep}${rem}${gcl}
         </div>
       </div>
       <span class="chev" data-open="${it.id}">›</span>
@@ -1017,6 +1032,7 @@ function saveClass() {
 }
 function deleteClass() {
   const term = terms.find(t => t.key === currentTerm); if (!term || !editingClass) return;
+  gcalDismiss(term.classes.find(x => x.id === editingClass));
   term.classes = term.classes.filter(x => x.id !== editingClass);
   persistTerms(); closeSheet('classSheet', 'classBackdrop'); renderGrade();
 }
@@ -1106,7 +1122,7 @@ function initSwipe() {
     else if (dx <= -TH) {
       r.style.transform = ''; suppressClickUntil = Date.now() + 400;
       const it = items.find(i => i.id === itemId);
-      if (it && confirm(`Excluir "${it.title}"?`)) { (it.attachments || []).forEach(a => idbDel(a.id)); items = items.filter(i => i.id !== itemId); persist(); render(); }
+      if (it && confirm(`Excluir "${it.title}"?`)) { gcalDismiss(it); (it.attachments || []).forEach(a => idbDel(a.id)); items = items.filter(i => i.id !== itemId); persist(); render(); }
     } else { r.style.transform = ''; }
     row = null;
   });
@@ -1262,6 +1278,7 @@ function cancelItem() {
 function deleteItem() {
   const it = items.find(i => i.id === editingId); if (!it) return;
   if (!confirm(`Excluir "${it.title}"?`)) return;
+  gcalDismiss(it);
   (it.attachments || []).forEach(a => idbDel(a.id));
   items = items.filter(i => i.id !== editingId);
   persist(); closeSheet('itemSheet', 'itemBackdrop'); render();
@@ -1331,7 +1348,8 @@ function importData(ev) {
           id: it.id || uid(), title: String(it.title), type: TYPE_MAP[it.type] ? it.type : 'outro',
           subject: it.subject || '', date: it.date, time: it.time || '', notes: it.notes || '',
           repeat: it.repeat || 'none', remind: it.remind || 'none', notified: !!it.notified,
-          done: !!it.done, attachments: Array.isArray(it.attachments) ? it.attachments : [], createdAt: it.createdAt || new Date().toISOString()
+          done: !!it.done, attachments: Array.isArray(it.attachments) ? it.attachments : [], createdAt: it.createdAt || new Date().toISOString(),
+          ...(it.gcalId ? { gcalId: String(it.gcalId) } : {})
         }));
         persist(); render(); scheduleReminders(); toast('Agenda importada.');
       }
@@ -1344,6 +1362,9 @@ function importData(ev) {
 /* ---------- Firebase sync ---------- */
 const fb = { app: null, auth: null, db: null, user: null };
 let syncState = 'off', syncMsg = '', unsub = null, pushTimer = null;
+let syncReady = false;     // 1ª leitura da nuvem concluída
+let pushPending = false;   // há alteração local aguardando envio (ignora snapshots antigos)
+let gcalSkipOnce = false;  // login com agenda falhou → próxima tentativa entra sem a agenda
 function firebaseConfigured() { return FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith('COLE_'); }
 function setSyncState(s, msg) { syncState = s; syncMsg = msg || ''; renderSyncBar(); }
 function initFirebase() {
@@ -1352,19 +1373,31 @@ function initFirebase() {
   if (!window.firebase || !firebase.initializeApp) { setSyncState('error', 'Sem conexão'); return; }
   try { fb.app = firebase.initializeApp(FIREBASE_CONFIG); fb.auth = firebase.auth(); fb.db = firebase.firestore(); }
   catch (e) { setSyncState('error', 'Config inválida'); return; }
-  fb.auth.getRedirectResult().catch(() => {});
-  fb.auth.onAuthStateChanged(u => { fb.user = u; if (u) startSync(); else stopSync(); renderSyncBar(); });
+  fb.auth.getRedirectResult().then(handleGcalCredential).catch(() => {});
+  fb.auth.onAuthStateChanged(u => {
+    fb.user = u; if (u) startSync(); else stopSync(); renderSyncBar(); updateGcalUI();
+    // já logado e com permissão ainda válida nesta sessão → atualiza a agenda sozinho
+    const cfg = gcalCfg(), tk = gcalToken();
+    if (u && cfg.enabled && tk && Date.now() - (cfg.last || 0) > 10 * 60000) gcalSync(tk);
+  });
+}
+function googleProvider(withCalendar) {
+  const p = new firebase.auth.GoogleAuthProvider();
+  if (withCalendar) p.addScope(GCAL_SCOPE);
+  return p;
 }
 function signIn() {
   if (!fb.auth) return;
-  const p = new firebase.auth.GoogleAuthProvider();
-  fb.auth.signInWithPopup(p).catch(err => {
+  const withCal = gcalCfg().enabled && !gcalSkipOnce;
+  const p = googleProvider(withCal);
+  fb.auth.signInWithPopup(p).then(handleGcalCredential).catch(err => {
     if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
     if (err.code === 'auth/popup-blocked' || err.code === 'auth/operation-not-supported-in-this-environment') fb.auth.signInWithRedirect(p);
+    else if (withCal) { gcalSkipOnce = true; toast('Não deu para entrar com acesso ao Google Agenda. Toque em Entrar de novo para entrar sem a agenda.'); }
     else setSyncState('error', err.message);
   });
 }
-function signOutUser() { if (fb.auth) fb.auth.signOut(); }
+function signOutUser() { try { sessionStorage.removeItem(GCAL_TOKEN_KEY); } catch {} if (fb.auth) fb.auth.signOut(); }
 function mergeById(primary, extra) { const ids = new Set(primary.map(i => i.id)); const r = primary.slice(); for (const it of extra) if (!ids.has(it.id)) r.push(it); return r; }
 async function startSync() {
   if (!fb.db || !fb.user) return;
@@ -1378,27 +1411,278 @@ async function startSync() {
     let needWrite = JSON.stringify(merged) !== JSON.stringify(remote);
     if (data.terms) { terms = normalizeTerms(data.terms); persistTermsLocal(); }
     else needWrite = true;   // nuvem ainda não tem horários → envia os locais
-    if (needWrite) await ref.set({ items: merged, terms, updatedAt: Date.now() });
+    gcalMergeDismissed(data.gcalHidden);
+    if (needWrite) await ref.set({ items: merged, terms, gcalHidden: [...gcalDismissed()], updatedAt: Date.now() });
     items = merged; persistLocal(); render();
-  } catch (e) { setSyncState('error', e.message); return; }
+  } catch (e) { syncReady = true; setSyncState('error', e.message); return; }
   if (unsub) unsub();
   unsub = ref.onSnapshot(snap => {
-    if (!snap.exists) return;
+    if (!snap.exists || pushPending) return;
     const data = snap.data();
     items = data.items || [];
     if (data.terms) { terms = normalizeTerms(data.terms); persistTermsLocal(); }
+    gcalMergeDismissed(data.gcalHidden);
     persistLocal(); render(); setSyncState('on');
   }, err => setSyncState('error', err.message));
+  syncReady = true;
   setSyncState('on');
 }
-function stopSync() { if (unsub) { unsub(); unsub = null; } setSyncState('off'); }
+function stopSync() { if (unsub) { unsub(); unsub = null; } syncReady = false; pushPending = false; clearTimeout(pushTimer); setSyncState('off'); }
 function pushRemote() {
   if (!fb.db || !fb.user) return;
-  clearTimeout(pushTimer); setSyncState('connecting');
-  pushTimer = setTimeout(() => { fb.db.collection('agendas').doc(fb.user.uid).set({ items, terms, updatedAt: Date.now() }).then(() => setSyncState('on')).catch(err => setSyncState('error', err.message)); }, 400);
+  clearTimeout(pushTimer); pushPending = true; setSyncState('connecting');
+  pushTimer = setTimeout(() => {
+    pushPending = false;
+    fb.db.collection('agendas').doc(fb.user.uid).set({ items, terms, gcalHidden: [...gcalDismissed()], updatedAt: Date.now() }).then(() => setSyncState('on')).catch(err => setSyncState('error', err.message));
+  }, 400);
 }
 
-const GG = '<svg class="g-ic" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.3 0 24 0 14.6 0 6.4 5.4 2.4 13.3l7.9 6.1C12.2 13.6 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16.5z"/><path fill="#FBBC05" d="M10.3 28.6c-.5-1.4-.7-2.9-.7-4.6s.3-3.2.7-4.6l-7.9-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.4 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.3-4.5 2.1-8.8 2.1-6.4 0-11.8-4.1-13.7-9.9l-7.9 6.1C6.4 42.6 14.6 48 24 48z"/></svg>';
+/* ---------- Google Agenda ---------- */
+const GCAL_SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
+const GCAL_CFG_KEY = 'agenda-gcal', GCAL_TOKEN_KEY = 'agenda-gcal-token', GCAL_DISMISS_KEY = 'agenda-gcal-dismissed';
+const GCAL_DAYS_AHEAD = 120;
+let gcalBusy = false;
+function gcalCfg() { try { return Object.assign({ enabled: true }, JSON.parse(localStorage.getItem(GCAL_CFG_KEY) || '{}')); } catch { return { enabled: true }; } }
+function gcalSaveCfg(patch) { try { localStorage.setItem(GCAL_CFG_KEY, JSON.stringify(Object.assign(gcalCfg(), patch))); } catch {} }
+function gcalToken() {
+  try { const t = JSON.parse(sessionStorage.getItem(GCAL_TOKEN_KEY) || 'null'); return t && t.exp > Date.now() ? t.token : null; } catch { return null; }
+}
+function gcalDismissed() { try { return new Set(JSON.parse(localStorage.getItem(GCAL_DISMISS_KEY) || '[]')); } catch { return new Set(); } }
+// Item do Google excluído no app: não volta na próxima sincronização
+function gcalDismiss(it) {
+  if (!it || !it.gcalId) return;
+  const s = gcalDismissed(); s.add(it.gcalId);
+  try { localStorage.setItem(GCAL_DISMISS_KEY, JSON.stringify([...s].slice(-500))); } catch {}
+}
+// A lista de excluídos também vai para a nuvem, para valer em todos os aparelhos
+function gcalMergeDismissed(remote) {
+  if (!Array.isArray(remote) || !remote.length) return;
+  const s = gcalDismissed(); remote.forEach(x => s.add(String(x)));
+  try { localStorage.setItem(GCAL_DISMISS_KEY, JSON.stringify([...s].slice(-500))); } catch {}
+}
+// Compromissos e provas do Google que já passaram saem dos "Atrasados"
+function gcalTidy() {
+  const today = todayStr(); let changed = false;
+  items.forEach(i => { if (i.gcalId && !i.done && i.date < today && (i.type === 'evento' || i.type === 'prova')) { i.done = true; changed = true; } });
+  return changed;
+}
+// Desligar: opcionalmente remove o que veio do Google
+function gcalToggle() {
+  const on = !gcalCfg().enabled;
+  gcalSaveCfg({ enabled: on, error: '' });
+  if (!on) {
+    try { sessionStorage.removeItem(GCAL_TOKEN_KEY); } catch {}
+    const n = items.filter(i => i.gcalId && !i.done).length + terms.reduce((a, t) => a + t.classes.filter(c => c.gcalId).length, 0);
+    if (n && confirm('Remover também os ' + n + ' itens/aulas importados do Google Agenda?')) {
+      items = items.filter(i => !i.gcalId || i.done);
+      terms.forEach(t => { t.classes = t.classes.filter(c => !c.gcalId); });
+      gcalSaveCfg({ last: 0 });
+      persistTermsLocal(); persist(); render();
+    }
+  }
+  updateGcalUI();
+  if (on) gcalSyncNow();
+}
+// Chamado após login/reautenticação: guarda o token de acesso (dura ~1h) e sincroniza
+function handleGcalCredential(res) {
+  const token = res && res.credential && res.credential.accessToken;
+  if (!token || !gcalCfg().enabled) return;
+  try { sessionStorage.setItem(GCAL_TOKEN_KEY, JSON.stringify({ token, exp: Date.now() + 50 * 60000 })); } catch {}
+  gcalSync(token);
+}
+// Botão "Sincronizar agora": usa o token em cache ou pede permissão de novo
+function gcalSyncNow() {
+  if (!gcalCfg().enabled) gcalSaveCfg({ enabled: true });
+  updateGcalUI();
+  const token = gcalToken();
+  if (token) { gcalSync(token); return; }
+  if (!fb.auth) { toast('Sincronização com o Google indisponível (sem conexão).'); return; }
+  if (!fb.user) { signIn(); return; }
+  const p = googleProvider(true);
+  fb.user.reauthenticateWithPopup(p).then(handleGcalCredential).catch(err => {
+    if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
+    if (err.code === 'auth/popup-blocked' || err.code === 'auth/operation-not-supported-in-this-environment') fb.user.reauthenticateWithRedirect(p);
+    else toast('Google Agenda: ' + (err.code === 'auth/user-mismatch' ? 'use a mesma conta do login.' : err.message));
+  });
+}
+async function gcalFetch(token, url) {
+  let res;
+  try { res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } }); }
+  catch { throw new Error('Sem conexão com o Google Agenda.'); }
+  if (res.ok) return res.json();
+  let msg = '';
+  try { const j = await res.json(); msg = (j.error && j.error.message) || ''; } catch {}
+  if (res.status === 401) { try { sessionStorage.removeItem(GCAL_TOKEN_KEY); } catch {} throw new Error('Permissão expirada. Toque em “Sincronizar agora” de novo.'); }
+  if (res.status === 403 && /not been used|disabled|accessNotConfigured/i.test(msg)) throw new Error('Ative a “Google Calendar API” no projeto do Firebase (veja o README).');
+  if (res.status === 403) throw new Error('Sem permissão para ler a agenda. Autorize o acesso ao Google Agenda ao entrar.');
+  throw new Error(msg || ('Falha no Google Agenda (' + res.status + ')'));
+}
+
+/* Classificação: decide para onde cada evento vai */
+const RX_COURSE = /\b([A-Z]{3,4})\s?(\d{3})(?:[A-Z]\d)?\b/;
+const RX_EXAM = /\b(prova|exame|exams?|midterms?|mid-term|finals|tests?|teste|quiz(zes)?|avalia[çc][ãa]o)\b/i;
+const RX_ASSIGN = /\b(assignment|trabalho|entrega|due|deadline|essay|reda[çc][ãa]o|project|projeto|paper|report|relat[óo]rio|submission|apresenta[çc][ãa]o|presentation)\b/i;
+const RX_HOMEWORK = /\b(homework|dever|li[çc][ãa]o|exerc[íi]cios?|problem set|pset|tarefa|leitura|reading)\b/i;
+const RX_CLASS = /\b(aula|lectures?|lec|tutorials?|tut|labs?|laborat[óo]rio|practicals?|pra|seminars?|semin[áa]rio|class)\b/i;
+function gcalClassify(ev) {
+  const title = ev.summary || '';
+  const m = title.match(RX_COURSE);
+  const course = m ? m[1] + m[2] : '';
+  let type = 'evento';
+  if (RX_EXAM.test(title) || (course && /\bfinal\b/i.test(title))) type = 'prova';
+  else if (ev.recurringEventId && ev.start && ev.start.dateTime && (course || RX_CLASS.test(title))) type = 'aula';
+  else if (RX_ASSIGN.test(title)) type = 'trabalho';
+  else if (RX_HOMEWORK.test(title)) type = 'dever';
+  let kind = 'LEC';
+  if (/\b(tut|tutorials?)\b/i.test(title)) kind = 'TUT';
+  else if (/\b(labs?|laborat[óo]rio)\b/i.test(title)) kind = 'LAB';
+  else if (/\b(pra|practicals?)\b/i.test(title)) kind = 'PRA';
+  return { type, course, kind };
+}
+function gcalWhen(ev) {
+  if (ev.start && ev.start.dateTime) {
+    const s = new Date(ev.start.dateTime), e = new Date((ev.end && ev.end.dateTime) || ev.start.dateTime);
+    const hm = d => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    return { date: dateStrOf(s), time: hm(s), end: hm(e), dow: s.getDay() };
+  }
+  if (ev.start && ev.start.date) {
+    const [y, mo, d] = ev.start.date.split('-').map(Number);
+    return { date: ev.start.date, time: '', end: '', dow: new Date(y, mo - 1, d).getDay() };
+  }
+  return null;
+}
+function gcalNotes(ev) {
+  const loc = (ev.location || '').trim();
+  const desc = (ev.description || '').replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').trim().slice(0, 500);
+  return [loc ? '📍 ' + loc : '', desc].filter(Boolean).join('\n');
+}
+
+/* Busca os eventos e distribui: aulas → Horários; o resto → Lista/Calendário */
+async function gcalImport(token) {
+  const now = new Date();
+  const min = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const max = new Date(min.getTime() + GCAL_DAYS_AHEAD * 86400000);
+  const minStr = dateStrOf(min), maxStr = dateStrOf(max);
+  // aulas: olha 14 dias para trás (semana de recesso etc.); repetidos comuns: só os próximos 30 dias
+  const fetchMin = new Date(min.getTime() - 14 * 86400000);
+  const recurMaxStr = dateStrOf(new Date(min.getTime() + 30 * 86400000));
+  const base = 'https://www.googleapis.com/calendar/v3';
+
+  // agendas visíveis do usuário (sem feriados/aniversários automáticos)
+  let cals = [{ id: 'primary' }];
+  try {
+    const cl = await gcalFetch(token, base + '/users/me/calendarList?minAccessRole=reader&maxResults=50');
+    const list = (cl.items || []).filter(c => c.selected !== false && !c.hidden && !/#holiday@|#contacts@|#weather@/.test(c.id));
+    if (list.length) cals = list.slice(0, 12);
+  } catch (e) { if (!/Sem permissão/.test(e.message)) throw e; }
+
+  const events = [];
+  for (const cal of cals) {
+    let pageToken = '';
+    for (let page = 0; page < 8; page++) {
+      const url = base + '/calendars/' + encodeURIComponent(cal.id) + '/events?singleEvents=true&orderBy=startTime&maxResults=250' +
+        '&timeMin=' + encodeURIComponent(fetchMin.toISOString()) + '&timeMax=' + encodeURIComponent(max.toISOString()) +
+        (pageToken ? '&pageToken=' + encodeURIComponent(pageToken) : '');
+      const data = await gcalFetch(token, url);
+      events.push(...(data.items || []));
+      pageToken = data.nextPageToken || '';
+      if (!pageToken) break;
+    }
+  }
+
+  const dismissed = gcalDismissed();
+  const seenItems = new Set(), seenClasses = new Set();
+  let nItems = 0, nClasses = 0;
+  for (const ev of events) {
+    if (!ev || ev.status === 'cancelled' || ev.eventType === 'workingLocation') continue;
+    if ((ev.attendees || []).some(a => a.self && a.responseStatus === 'declined')) continue;
+    const when = gcalWhen(ev); if (!when) continue;
+    const cls = gcalClassify(ev);
+    const title = (ev.summary || '(Sem título)').trim();
+
+    // Aula recorrente em dia útil, dentro de um período → aba Horários
+    if (cls.type === 'aula' && when.dow >= 1 && when.dow <= 5) {
+      const term = terms.find(t => t.start && t.end && when.date >= t.start && when.date <= t.end);
+      if (term) {
+        const key = ev.recurringEventId + '|' + when.dow + '|' + when.time;
+        if (!seenClasses.has(key) && !dismissed.has(key)) {
+          seenClasses.add(key);
+          const code = cls.course || title.slice(0, 24);
+          const room = (ev.location || '').trim().slice(0, 80);
+          const mine = term.classes.find(x => x.gcalId === key);
+          // aula que você já cadastrou à mão no mesmo dia/horário: não duplica nem passa a ser "do Google"
+          const manual = !mine && term.classes.find(x => !x.gcalId && x.day === when.dow && x.s === when.time && x.code === code);
+          if (mine) { mine.code = code; mine.e = when.end || mine.e; if (room) mine.room = room; }
+          else if (manual) { if (!manual.room && room) manual.room = room; }
+          else term.classes.push({ id: newClassId(), gcalId: key, day: when.dow, s: when.time, e: when.end || when.time, code, kind: cls.kind, room });
+          nClasses++;
+        }
+        continue;
+      }
+    }
+
+    // Demais eventos → itens da agenda (Lista + Calendário)
+    const gid = ev.id;
+    if (!gid || dismissed.has(gid) || when.date < minStr) continue;
+    if (ev.recurringEventId && when.date > recurMaxStr) continue;
+    seenItems.add(gid);
+    const type = cls.type === 'aula' ? 'evento' : cls.type;
+    const cur = items.find(i => i.gcalId === gid);
+    if (cur) {
+      if (cur.date !== when.date || (cur.time || '') !== when.time) cur.notified = false;
+      cur.title = title; cur.date = when.date; cur.time = when.time;
+      if (!cur.subject && cls.course) cur.subject = cls.course;
+    } else {
+      items.push({ id: uid(), gcalId: gid, done: false, createdAt: new Date().toISOString(), title, type,
+        subject: cls.course, date: when.date, time: when.time, notes: gcalNotes(ev), attachments: [],
+        repeat: 'none', remind: 'none', notified: false });
+    }
+    nItems++;
+  }
+
+  // Remove o que sumiu do Google (só dentro da janela buscada e ainda pendente)
+  items = items.filter(i => {
+    const keep = !i.gcalId || i.done || seenItems.has(i.gcalId) || i.date < minStr || i.date > maxStr;
+    if (!keep) (i.attachments || []).forEach(a => idbDel(a.id));
+    return keep;
+  });
+  terms.forEach(t => {
+    if (!t.start || !t.end || t.end < minStr || t.start > maxStr) return;
+    t.classes = t.classes.filter(c => !c.gcalId || seenClasses.has(c.gcalId));
+  });
+  gcalTidy();
+  return { nItems, nClasses };
+}
+
+async function gcalSync(token) {
+  if (gcalBusy) return;
+  gcalBusy = true; updateGcalUI();
+  try {
+    // espera a sincronização inicial com a nuvem terminar, para não sobrescrever nada
+    for (let i = 0; i < 50 && fb.auth && fb.auth.currentUser && !syncReady; i++) await new Promise(r => setTimeout(r, 200));
+    const r = await gcalImport(token);
+    gcalSaveCfg({ last: Date.now(), nItems: r.nItems, nClasses: r.nClasses, error: '' });
+    persistTermsLocal(); persist(); render(); scheduleReminders();
+    toast(`📆 Google Agenda: ${r.nItems} compromisso(s), ${r.nClasses} aula(s)`);
+  } catch (e) {
+    gcalSaveCfg({ error: e.message });
+    toast('📆 ' + e.message);
+  } finally { gcalBusy = false; updateGcalUI(); }
+}
+function updateGcalUI() {
+  const st = document.getElementById('gcalState'), hint = document.getElementById('gcalHint'), tg = document.getElementById('gcalToggle');
+  if (!st) return;
+  const cfg = gcalCfg();
+  tg.textContent = cfg.enabled ? 'Ligado' : 'Desligado';
+  st.textContent = gcalBusy ? 'sincronizando…' : 'agora ›';
+  let h = 'Ao entrar com o Google, seus compromissos vão para a Lista e o Calendário, e as aulas semanais para os Horários (provas, trabalhos e deveres são identificados pelo título).';
+  if (cfg.error) h = '⚠ ' + cfg.error;
+  else if (cfg.last) h = 'Última sincronização: ' + new Date(cfg.last).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) +
+    ` — ${cfg.nItems || 0} compromisso(s) e ${cfg.nClasses || 0} aula(s). Apenas leitura: nada é alterado no seu Google Agenda.`;
+  hint.textContent = h;
+}
+
+const GG ='<svg class="g-ic" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.3 0 24 0 14.6 0 6.4 5.4 2.4 13.3l7.9 6.1C12.2 13.6 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16.5z"/><path fill="#FBBC05" d="M10.3 28.6c-.5-1.4-.7-2.9-.7-4.6s.3-3.2.7-4.6l-7.9-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.4 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.3-4.5 2.1-8.8 2.1-6.4 0-11.8-4.1-13.7-9.9l-7.9 6.1C6.4 42.6 14.6 48 24 48z"/></svg>';
 function renderSyncBar() {
   const bar = document.getElementById('syncBar');
   const set = document.getElementById('setSync');
@@ -1485,7 +1769,7 @@ document.getElementById('gradeEdit').addEventListener('click', e => {
   if (e.target.closest('#addClassBtn')) { openClassSheet(null); return; }
   if (e.target.closest('#clearTermBtn')) {
     const term = terms.find(t => t.key === currentTerm);
-    if (term && term.classes.length && confirm('Remover todas as aulas de ' + term.name + '?')) { term.classes = []; persistTerms(); renderGrade(); toast('Aulas removidas.'); }
+    if (term && term.classes.length && confirm('Remover todas as aulas de ' + term.name + '?')) { term.classes.forEach(gcalDismiss); term.classes = []; persistTerms(); renderGrade(); toast('Aulas removidas.'); }
   }
 });
 document.getElementById('gradeEdit').addEventListener('change', e => {
@@ -1506,8 +1790,11 @@ enableDrag('classGrabber', 'classSheet', 'classBackdrop', () => closeSheet('clas
 document.getElementById('settingsBtn').addEventListener('click', () => {
   renderSyncBar();
   updateNotifUI();
+  updateGcalUI();
   showSheet('setSheet', 'setBackdrop');
 });
+document.getElementById('gcalToggleRow').addEventListener('click', gcalToggle);
+document.getElementById('gcalNow').addEventListener('click', () => { if (!gcalBusy) gcalSyncNow(); });
 document.getElementById('btnNotif').addEventListener('click', requestNotif);
 document.getElementById('setDone').addEventListener('click', () => closeSheet('setSheet', 'setBackdrop'));
 document.getElementById('setBackdrop').addEventListener('click', () => closeSheet('setSheet', 'setBackdrop'));
@@ -1541,6 +1828,8 @@ initSwipe();
 render();
 initFirebase();
 updateNotifUI();
+updateGcalUI();
+if (gcalTidy()) { persistLocal(); render(); }
 scheduleReminders();
 document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleReminders(); });
 </script>

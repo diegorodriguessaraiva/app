@@ -16,6 +16,7 @@ Para acessar do celular, publique com o **GitHub Pages** (Settings → Pages →
 - 🔁 **Itens recorrentes**: diário, semanal, quinzenal ou mensal — ao concluir, a próxima ocorrência é criada sozinha
 - 🔔 **Lembretes/notificações**: escolha em cada item (no horário, 10/30 min, 1 h ou 1 dia antes)
 - 📚 **Grade de horários** por usuário: cada conta tem a sua, editável no app (**Editar** → adicionar/editar/excluir aulas e ajustar o período), dia a dia, com cor por matéria e destaque do dia; **toque numa aula para abrir a rota a pé no Google Maps** até o prédio. Sincroniza na nuvem junto com a agenda quando você entra com o Google.
+- 📆 **Google Agenda**: ao entrar com o Google, o app lê a sua agenda e distribui tudo sozinho — **aulas semanais** vão para os **Horários**; **provas, trabalhos, deveres e compromissos** vão para a **Lista** e o **Calendário** (veja a configuração abaixo)
 - 👆 **Deslizar** um item: arraste para a **direita para concluir** ✓ ou para a **esquerda para excluir** 🗑️ (gesto estilo iOS)
 - 🗓️ **Visão de calendário** mensal com bolinhas nos dias que têm itens e a lista do dia selecionado
 - 🏷️ **Tipos**: dever de casa, prova, trabalho, data importante e outros
@@ -99,6 +100,33 @@ const FIREBASE_CONFIG = {
 Abra o app, clique em **Entrar com Google** na barra do topo e faça login **com a mesma conta** em todos os seus aparelhos. Tudo passa a sincronizar automaticamente. Os itens que já existiam no aparelho são enviados para a nuvem no primeiro login — nada se perde.
 
 > 💡 A `apiKey` do Firebase **não é secreta** — ela pode ficar pública no código sem problema. A segurança vem das regras do Firestore (passo 3), que só deixam cada usuário ler e gravar os próprios dados.
+
+## 📆 Sincronizar com o Google Agenda
+
+Com a sincronização do Firebase funcionando, falta **um passo, uma vez só**, para o app poder ler a sua agenda:
+
+1. Abra [console.cloud.google.com/apis/library/calendar-json.googleapis.com](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com), confira no topo se o projeto selecionado é o **mesmo do Firebase** e clique em **Ativar** (Enable)
+2. No app, toque em **Sair** e depois **Entrar com Google** de novo (ou vá em **Ajustes ⚙️ → Google Agenda → Sincronizar**)
+3. O Google vai pedir permissão para **ver os eventos da agenda**. Como o app é seu e não passou pela verificação do Google, aparece o aviso *"O Google não verificou este app"* — toque em **Avançado → Acessar (nome do app)** e marque a permissão da agenda
+
+> Se aparecer **"Acesso bloqueado"**, o projeto está em modo de teste: em [console.cloud.google.com/auth/audience](https://console.cloud.google.com/auth/audience) adicione o seu e-mail em **Usuários de teste** (ou publique o app).
+
+**Como o app classifica cada evento** (pelo título):
+
+| Evento no Google Agenda | Vai para |
+| --- | --- |
+| Evento **que se repete**, com horário, de segunda a sexta, com código de matéria (`MAT137`, `CSC108H1`…) ou palavras como *aula, lecture, tutorial, lab* | **Horários** (com a sala do campo "local", que abre a rota no Maps) |
+| *prova, exame, exam, midterm, quiz, test, final* | **Prova** |
+| *trabalho, entrega, assignment, due, essay, project, apresentação* | **Trabalho** |
+| *dever, lição, homework, exercícios, problem set, leitura* | **Dever de casa** |
+| Todo o resto (consultas, reuniões, aniversários…) | **Data importante** |
+
+- A matéria é preenchida pelo código do curso no título, e o local/descrição vão para as anotações. Itens vindos do Google têm o selo 📆.
+- É **somente leitura**: o app nunca altera nem apaga nada no seu Google Agenda.
+- São importados os próximos **120 dias** (eventos repetidos que não são aula: só os próximos 30 dias, para não encher a lista).
+- Sincronizar de novo **não duplica**: atualiza data/hora, remove o que foi apagado no Google e não traz de volta o que você excluiu no app. Você pode mudar o tipo de um item importado que ele é mantido.
+- O Google só libera o acesso por cerca de **1 hora** após o login. Depois disso, para atualizar, toque em **Ajustes → Google Agenda → Sincronizar** (abre a janela do Google rapidamente).
+- Para desligar: **Ajustes → Google Agenda → Importar ao entrar**.
 
 ## Observações
 
